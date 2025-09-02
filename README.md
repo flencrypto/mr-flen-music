@@ -2,6 +2,8 @@
 
 A single-file web app that searches and plays tracks from **Audius**. Built as a lightweight, futuristic library for **Mr.FLEN**.
 
+The interface now follows a dark, glassy dashboard style similar to the provided mock‑up reference.
+
 ## User interface
 
 The app ships as plain HTML files. Open `index.html` in a browser to explore the UI.
