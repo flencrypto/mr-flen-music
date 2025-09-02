@@ -69,6 +69,7 @@
       cursor:pointer;
       text-decoration:none;
       color:inherit;
+
     }
     .playlist-card img{border-radius:10px}
     .pill{
@@ -116,15 +117,23 @@
   </footer>
 
 <script type="module">
-/** ENV **/
+/**
+ * Audius REST integration for Mr.FLENs Music Finder.
+ *
+ * This script uses the public Audius API to search tracks and
+ * obtain stream URLs. It debounces search input and updates
+ * the result grid dynamically. To customise the look and feel,
+ * edit the CSS in the <style> block above.
+ */
+
 const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
 const AUDIUS_API_KEY  = "922e6edcae9856000bf6814a1ee5745bfb57734"; // public, read-only (ok in client)
 const MRFLEN_HANDLE   = "Mr.FLEN";
 const SOUNDCLOUD_CLIENT_ID = 'YOUR_SOUNDCLOUD_API_KEY';
+
 // BACKEND-ONLY (do NOT ship secrets to the browser):
 // const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET";
 
-/** REST implementation (no bundler required). **/
 async function pickHost(){
   const res = await fetch('https://api.audius.co');
   const { data } = await res.json();
@@ -159,6 +168,7 @@ async function trendingTracks(genre){
   const res = await fetch(url, { headers: { Accept:'application/json' } });
   const json = await res.json();
   return (json.data || []).map(normalizeAudiusTrack);
+
 }
 
 async function trendingPlaylists(){
@@ -172,6 +182,16 @@ async function trendingPlaylists(){
 async function latestRelease(){
   const tracks = await searchTracks('Mr.FLEN');
   return tracks[0] ? normalizeAudiusTrack(tracks[0]) : null;
+
+async function fetchPlaylist(id){
+  const host = await pickHost();
+  const url = `${host}/v1/playlists/${id}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+  const res = await fetch(url, { headers: { Accept:'application/json' } });
+  const json = await res.json();
+  return json.data || null;
+}
+
+
 }
 
 function renderFeatured(track){
@@ -205,9 +225,11 @@ function normalizeSoundCloudTrack(t){
     permalink_url:t.permalink_url,
     user:{ handle: t.user && t.user.username ? t.user.username : '' }
   };
+
 }
 
 /** UI wiring **/
+
 const results = document.querySelector('#results');
 let audioPlayer = document.querySelector('#player');
 const search  = document.querySelector('#search');
@@ -323,6 +345,7 @@ async function loadHome(genre){
       ${renderFeatured(feature)}
       <h2>Trending Tracks${genreLabel}</h2>
       <div class="carousel">${renderTracksList(tracks,true)}</div>
+
       <h2>Trending Playlists</h2>
       ${renderPlaylistList(playlists)}
     `;
