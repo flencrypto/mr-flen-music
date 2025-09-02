@@ -67,6 +67,9 @@
       padding:12px;
       align-items:center;
       cursor:pointer;
+      text-decoration:none;
+      color:inherit;
+
     }
     .playlist-card img{border-radius:10px}
     .pill{
@@ -94,130 +97,12 @@
 <body>
   <header class="glass grid" style="padding:12px 16px;margin:16px;">
     <div class="row" style="justify-content:space-between;align-items:center;">
-      <div class="row"><h1 style="margin:0">🎶 Mr.FLENs Music Finder</h1><span class="pill">Audius</span></div>
+      <div class="row"><h1 style="margin:0">🎶 Mr.FLENs Music Finder</h1><span class="pill">Audius+SC</span></div>
       <button id="login" class="pill" style="cursor:pointer;background:#0000">Login</button>
     </div>
-  <style>
-    /*
-      Custom theme for Mr.FLENs Music Finder.
-
-      This stylesheet embraces a dark, glass‑morphic aesthetic with neon accents inspired
-      by our design brief. Colours and spacing are exposed as CSS variables so the
-      theme can be easily tweaked without restructuring the markup. Hover states
-      include smooth transitions for a polished feel.
-    */
-    :root {
-      /* primary highlight used for buttons and interactive elements */
-      --primary-neon: #5CF3FF;
-      /* secondary accent used for subtle highlights */
-      --secondary-accent: #9B5CFF;
-      /* base background colour */
-      --background: #05060A;
-      /* semi‑transparent glass panels */
-      --glass: rgba(255, 255, 255, 0.06);
-      /* typography colours */
-      --text-primary: #EAF4FF;
-      --text-muted: #8A96B3;
-    }
-    
-    /* overall page backdrop */
-    body {
-      margin: 0;
-      background:
-        radial-gradient(1200px 600px at 20% -10%, var(--secondary-accent)22, transparent 60%),
-        var(--background);
-      color: var(--text-primary);
-      font-family: Inter, system-ui, sans-serif;
-    }
-
-    header, footer, main {
-      max-width: 1100px;
-      margin: auto;
-    }
-
-    .glass {
-      backdrop-filter: saturate(1.4) blur(12px);
-      background: var(--glass);
-      border: 1px solid #ffffff18;
-      border-radius: 16px;
-    }
-
-    .grid {
-      display: grid;
-      gap: 16px;
-    }
-
-    /* search input styling */
-    input#search {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid #ffffff22;
-      background: rgba(0, 0, 0, 0.4);
-      color: var(--text-primary);
-      outline: none;
-      transition: box-shadow 0.2s;
-    }
-    input#search:focus {
-      box-shadow: 0 0 0 2px var(--primary-neon);
-    }
-
-    /* card layout for each track */
-    .track-card {
-      display: grid;
-      grid-template-columns: 72px 1fr auto;
-      gap: 12px;
-      padding: 12px;
-      align-items: center;
-      transition: transform 0.2s;
-    }
-    .track-card:hover {
-      transform: translateY(-2px);
-    }
-    .track-card img {
-      border-radius: 10px;
-    }
-
-    /* play button styling */
-    .play {
-      border: 1px solid var(--primary-neon);
-      color: var(--primary-neon);
-      padding: 8px 12px;
-      border-radius: 10px;
-      background: transparent;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-    .play:hover {
-      background: var(--primary-neon);
-      color: var(--background);
-    }
-
-    /* optional pill tag styling */
-    .pill {
-      padding: 2px 8px;
-      border: 1px solid #ffffff22;
-      border-radius: 999px;
-      font-size: 12px;
-      opacity: 0.8;
-    }
-
-    /* row layout for filter chips or meta */
-    .row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-  </style>
-</head>
-<body>
-  <header class="glass grid" style="padding:12px 16px;">
-    <h1>🎶 Mr.FLENs Music Finder</h1>
-    <input id="search" placeholder="Search Audius (Ctrl/⌘-K)" autocomplete="off" />
+    <input id="search" placeholder="Search tracks (Ctrl/⌘-K)" autocomplete="off" />
     <div id="genres" class="row"></div>
   </header>
-
 
   <main id="results" class="grid" style="padding:0 16px 140px;"></main>
 
@@ -228,8 +113,7 @@
         <button id="next" class="btn">⏭</button>
       </div>
     </div>
-
-    <audio id="player" controls preload="none" style="width:100%"></audio>
+    <div id="playerContainer"><audio id="player" controls preload="none" style="width:100%"></audio></div>
   </footer>
 
 <script type="module">
@@ -245,6 +129,8 @@
 const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
 const AUDIUS_API_KEY  = "922e6edcae9856000bf6814a1ee5745bfb57734"; // public, read-only (ok in client)
 const MRFLEN_HANDLE   = "Mr.FLEN";
+const SOUNDCLOUD_CLIENT_ID = 'YOUR_SOUNDCLOUD_API_KEY';
+
 // BACKEND-ONLY (do NOT ship secrets to the browser):
 // const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET";
 
@@ -262,6 +148,14 @@ async function searchTracks(query){
   return json.data || [];
 }
 
+async function searchSoundCloud(query){
+  const url = `https://api.soundcloud.com/tracks?client_id=${SOUNDCLOUD_CLIENT_ID}&q=${encodeURIComponent(query)}&limit=20`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('sc');
+  const json = await res.json();
+  return json.filter(t=>t.user && t.user.username === MRFLEN_HANDLE);
+}
+
 async function streamUrl(trackId){
   const host = await pickHost();
   return `${host}/v1/tracks/${trackId}/stream?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
@@ -273,7 +167,8 @@ async function trendingTracks(genre){
   const url = `${host}/v1/tracks/trending?limit=5${genreParam}&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
   const res = await fetch(url, { headers: { Accept:'application/json' } });
   const json = await res.json();
-  return json.data || [];
+  return (json.data || []).map(normalizeAudiusTrack);
+
 }
 
 async function trendingPlaylists(){
@@ -284,6 +179,10 @@ async function trendingPlaylists(){
   return json.data || [];
 }
 
+async function latestRelease(){
+  const tracks = await searchTracks('Mr.FLEN');
+  return tracks[0] ? normalizeAudiusTrack(tracks[0]) : null;
+
 async function fetchPlaylist(id){
   const host = await pickHost();
   const url = `${host}/v1/playlists/${id}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
@@ -292,29 +191,47 @@ async function fetchPlaylist(id){
   return json.data || null;
 }
 
-async function latestRelease(){
-  const tracks = await searchTracks('Mr.FLEN');
-  return tracks[0] || null;
+
 }
 
 function renderFeatured(track){
   if(!track) return '';
-  const art = (track.artwork && (track.artwork['480x480'] || track.artwork['150x150'])) || '';
-  const handle = track.user && track.user.handle ? track.user.handle : '';
   return `
-    <div class="glass featured">
-      <img src="${art}" alt="artwork" />
+    <a href="track.html?platform=${track.platform}&id=${track.id}" class="glass featured" style="display:block;text-decoration:none;color:inherit">
+      <img src="${track.artwork}" alt="artwork" />
       <div style="padding:16px">
         <div style="font-weight:700">${track.title || ''}</div>
-        <div style="opacity:.7">@${handle}</div>
+        <div style="opacity:.7">@${track.user.handle}</div>
       </div>
-    </div>`;
+    </a>`;
+}
+
+function normalizeAudiusTrack(t){
+  return {
+    platform:'audius',
+    id:t.id,
+    title:t.title,
+    artwork:(t.artwork && (t.artwork['150x150'] || t.artwork['480x480'])) || '',
+    user:{ handle: t.user && t.user.handle ? t.user.handle : '' }
+  };
+}
+
+function normalizeSoundCloudTrack(t){
+  return {
+    platform:'soundcloud',
+    id:t.id,
+    title:t.title,
+    artwork:t.artwork_url || '',
+    permalink_url:t.permalink_url,
+    user:{ handle: t.user && t.user.username ? t.user.username : '' }
+  };
+
 }
 
 /** UI wiring **/
 
 const results = document.querySelector('#results');
-const player  = document.querySelector('#player');
+let audioPlayer = document.querySelector('#player');
 const search  = document.querySelector('#search');
 const login   = document.querySelector('#login');
 const nextBtn = document.querySelector('#next');
@@ -342,28 +259,38 @@ let currentIndex = -1;
 function updateQueue(){ queueLabel.textContent = `Queue: ${queue.length}`; }
 
 async function playTrack(track){
-  const url = await streamUrl(track.id);
-  player.src = url;
-  await player.play();
+  const container = document.querySelector('#playerContainer');
+  if(track.platform==='soundcloud'){
+    const res = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(track.permalink_url)}`);
+    const { html } = await res.json();
+    container.innerHTML = html;
+    audioPlayer = null;
+  }else{
+    container.innerHTML = '<audio id="player" controls preload="none" style="width:100%"></audio>';
+    audioPlayer = document.querySelector('#player');
+    const url = await streamUrl(track.id);
+    audioPlayer.src = url;
+    await audioPlayer.play();
+    audioPlayer.addEventListener('ended', ()=> nextBtn.onclick(), { once:true });
+  }
 }
 
 function renderTracksList(list, includeLink=false){
   return list.map(t=>{
-    trackCache[t.id]=t;
-    const art = (t.artwork && (t.artwork['150x150'] || t.artwork['480x480'])) || '';
-    const handle = t.user && t.user.handle ? t.user.handle : '';
-    const gridStyle = includeLink ? ' style="grid-template-columns:72px 1fr auto auto auto;"' : '';
-    const link = includeLink ? `<a href="track.html?id=${t.id}" class="btn">Go To Track</a>` : '';
+    trackCache[`${t.platform}:${t.id}`]=t;
+    const buttons = [`<button data-platform="${t.platform}" data-id="${t.id}" class="btn play">▶</button>`];
+    if(t.platform==='audius') buttons.push(`<button data-platform="${t.platform}" data-id="${t.id}" class="btn queue">➕</button>`);
+    if(includeLink) buttons.push(`<a href="track.html?platform=${t.platform}&id=${t.id}" class="btn">Go To Track</a>`);
+    const cols = `72px 1fr${' auto'.repeat(buttons.length)}`;
+    const badge = `<span class="pill">${t.platform==='audius'?'Audius':'SoundCloud'}</span>`;
     return `
-      <div class="glass track-card"${gridStyle}>
-        <img src="${art}" width="72" height="72" loading="lazy" alt="artwork" />
+      <div class="glass track-card" style="grid-template-columns:${cols};">
+        <img src="${t.artwork}" width="72" height="72" loading="lazy" alt="artwork" />
         <div>
           <div style="font-weight:700">${t.title || ''}</div>
-          <div style="opacity:.7">@${handle}</div>
+          <div style="opacity:.7">@${t.user.handle} ${badge}</div>
         </div>
-        <button data-id="${t.id}" class="btn play">▶</button>
-        <button data-id="${t.id}" class="btn queue">➕</button>
-        ${link}
+        ${buttons.join('')}
       </div>`;
   }).join('');
 }
@@ -371,16 +298,20 @@ function renderTracksList(list, includeLink=false){
 function attachTrackEvents(container=results){
   container.querySelectorAll('.play').forEach(btn=>{
     btn.onclick = async () => {
-      const track = trackCache[btn.dataset.id];
-      queue.push(track);
-      currentIndex = queue.length - 1;
-      updateQueue();
+      const key = `${btn.dataset.platform}:${btn.dataset.id}`;
+      const track = trackCache[key];
+      if(track.platform==='audius'){
+        queue.push(track);
+        currentIndex = queue.length - 1;
+        updateQueue();
+      }
       await playTrack(track);
     };
   });
   container.querySelectorAll('.queue').forEach(btn=>{
     btn.onclick = () => {
-      const track = trackCache[btn.dataset.id];
+      const key = `${btn.dataset.platform}:${btn.dataset.id}`;
+      const track = trackCache[key];
       queue.push(track);
       updateQueue();
     };
@@ -391,30 +322,14 @@ function renderPlaylistList(list){
   return list.map(p=>{
     const art = (p.artwork && (p.artwork['150x150'] || p.artwork['480x480'])) || '';
     return `
-      <div class="glass playlist-card" data-id="${p.id}">
+      <a class="glass playlist-card" href="playlist.html?id=${p.id}">
         <img src="${art}" width="72" height="72" loading="lazy" alt="artwork" />
         <div>
           <div style="font-weight:700">${p.playlist_name || ''}</div>
           <div style="opacity:.7">${p.track_count || 0} tracks</div>
         </div>
-      </div>`;
+      </a>`;
   }).join('');
-}
-
-async function loadPlaylist(id){
-  results.innerHTML = '<div class="glass" style="padding:16px;">Loading playlist…</div>';
-  try{
-    const pl = await fetchPlaylist(id);
-    if(!pl || !pl.tracks || !pl.tracks.length){
-      results.innerHTML = '<div class="glass" style="padding:16px;">No tracks.</div>';
-      return;
-    }
-    results.innerHTML = `<h2>${pl.playlist_name || ''}</h2>` + renderTracksList(pl.tracks);
-    attachTrackEvents();
-  }catch(err){
-    console.error(err);
-    results.innerHTML = '<div class="glass" style="padding:16px;">Error loading playlist.</div>';
-  }
 }
 
 async function loadHome(genre){
@@ -429,14 +344,12 @@ async function loadHome(genre){
     results.innerHTML = `
       ${renderFeatured(feature)}
       <h2>Trending Tracks${genreLabel}</h2>
-      <div class="carousel">${renderTracksList(tracks)}</div>
+      <div class="carousel">${renderTracksList(tracks,true)}</div>
+
       <h2>Trending Playlists</h2>
       ${renderPlaylistList(playlists)}
     `;
     attachTrackEvents();
-    results.querySelectorAll('.playlist-card').forEach(card=>{
-      card.onclick = ()=> loadPlaylist(card.dataset.id);
-    });
   }catch(err){
     console.error(err);
     results.innerHTML = '<div class="glass" style="padding:16px;">Error loading trending data.</div>';
@@ -451,16 +364,28 @@ search.addEventListener('input', async (e)=>{
     if (!q){ loadHome(currentGenre); return; }
     results.innerHTML = '<div class="glass" style="padding:16px;">Searching…</div>';
     try{
-      const tracks = (await searchTracks(q)).filter(t=>t.user && t.user.handle === MRFLEN_HANDLE);
+      let scError = false;
+      const [a, s] = await Promise.all([
+        searchTracks(q),
+        searchSoundCloud(q).catch(()=>{ scError = true; return []; })
+      ]);
+      const tracks = [
+        ...a.filter(t=>t.user && t.user.handle === MRFLEN_HANDLE).map(normalizeAudiusTrack),
+        ...s.map(normalizeSoundCloudTrack)
+      ];
       if(!tracks.length){
         results.innerHTML = '<div class="glass" style="padding:16px;">No Mr.FLEN tracks found.</div>';
+        if(scError) results.innerHTML += '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ SoundCloud results unavailable.</div>';
         return;
       }
-      results.innerHTML = renderTracksList(tracks, true);
+      tracks.sort((a,b)=>a.title.localeCompare(b.title));
+      let html = renderTracksList(tracks, true);
+      if(scError) html = '<div class="glass" style="padding:16px;">⚠️ SoundCloud results unavailable.</div>' + html;
+      results.innerHTML = html;
       attachTrackEvents();
     }catch(err){
       console.error(err);
-      results.innerHTML = '<div class="glass" style="padding:16px;">Error contacting Audius API.</div>';
+      results.innerHTML = '<div class="glass" style="padding:16px;">Error contacting APIs.</div>';
     }
   }, 250);
 });
@@ -471,8 +396,6 @@ nextBtn.onclick = () => {
     playTrack(queue[currentIndex]);
   }
 };
-
-player.addEventListener('ended', ()=> nextBtn.onclick());
 
 login.onclick = () => alert('OAuth login coming soon');
 

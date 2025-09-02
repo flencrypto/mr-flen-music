@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Playlist - Mr.FLENs Music Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --color-primary:#5CF3FF;
+      --color-secondary:#9B5CFF;
+      --color-bg:#05060A;
+      --color-glass:rgba(255,255,255,0.06);
+      --color-text:#EAF4FF;
+      --color-muted:#8A96B3;
+    }
+    body{
+      background:var(--color-bg);
+      color:var(--color-text);
+      font-family:'Inter',system-ui,sans-serif;
+      margin:0;
+    }
+    .glass{
+      backdrop-filter:saturate(1.4) blur(12px);
+      background:var(--color-glass);
+      border:1px solid #ffffff11;
+      border-radius:16px;
+    }
+    .track-card{
+      display:grid;
+      grid-template-columns:72px 1fr auto auto;
+      gap:12px;
+      padding:12px;
+      align-items:center;
+    }
+    .track-card img{border-radius:10px}
+    .btn{
+      display:inline-block;
+      text-decoration:none;
+      border:1px solid var(--color-primary);
+      color:var(--color-primary);
+      padding:8px 12px;
+      border-radius:10px;
+      background:transparent;
+      cursor:pointer;
+    }
+    .btn:hover{background:var(--color-secondary);color:#05060A}
+    .pill{
+      padding:2px 8px;
+      border:1px solid #ffffff22;
+      border-radius:999px;
+      font-size:12px;
+      opacity:.8;
+    }
+  </style>
+</head>
+<body>
+  <header class="glass" style="padding:12px 16px;margin:16px;">
+    <a href="index.html" class="pill" style="text-decoration:none;color:inherit">← Home</a>
+  </header>
+  <main id="playlist" class="glass" style="padding:16px;margin:16px;">Loading playlist…</main>
+  <footer class="glass" style="position:fixed;left:0;right:0;bottom:0;padding:8px;margin:16px;">
+    <audio id="player" controls preload="none" style="width:100%"></audio>
+  </footer>
+  <script type="module">
+  const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
+  const AUDIUS_API_KEY  = "922e6edcae9856000bf6814a1ee5745bfb57734";
+  async function pickHost(){
+    const res = await fetch('https://api.audius.co');
+    const { data } = await res.json();
+    return data[Math.floor(Math.random()*data.length)];
+  }
+  async function streamUrl(trackId){
+    const host = await pickHost();
+    return `${host}/v1/tracks/${trackId}/stream?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+  }
+  async function fetchPlaylist(id){
+    const host = await pickHost();
+    const url = `${host}/v1/playlists/${id}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+    const res = await fetch(url, { headers: { Accept:'application/json' } });
+    const json = await res.json();
+    return json.data || null;
+  }
+  function renderTracksList(list){
+    return list.map(t=>{
+      trackCache[t.id]=t;
+      const art = (t.artwork && (t.artwork['150x150'] || t.artwork['480x480'])) || '';
+      const handle = t.user && t.user.handle ? t.user.handle : '';
+      return `
+        <div class="glass track-card">
+          <img src="${art}" width="72" height="72" loading="lazy" alt="artwork" />
+          <div>
+            <div style="font-weight:700">${t.title || ''}</div>
+            <div style="opacity:.7">@${handle}</div>
+          </div>
+          <button data-id="${t.id}" class="btn play">▶</button>
+          <a href="track.html?platform=audius&id=${t.id}" class="btn">Go To Track</a>
+        </div>`;
+    }).join('');
+  }
+  function attachTrackEvents(){
+    document.querySelectorAll('.play').forEach(btn=>{
+      btn.onclick = async () => {
+        const track = trackCache[btn.dataset.id];
+        player.src = await streamUrl(track.id);
+        await player.play();
+      };
+    });
+  }
+  const trackCache = {};
+  const el = document.querySelector('#playlist');
+  const player = document.querySelector('#player');
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if(id){
+    try{
+      const pl = await fetchPlaylist(id);
+      if(!pl){ el.textContent = 'Playlist not found.'; }
+      else {
+        const art = (pl.artwork && (pl.artwork['480x480'] || pl.artwork['150x150'])) || '';
+        el.innerHTML = `
+          <img src="${art}" alt="artwork" style="width:200px;height:200px;border-radius:12px" />
+          <h1>${pl.playlist_name || ''}</h1>
+          <p>${pl.track_count || 0} tracks</p>
+          ${renderTracksList(pl.tracks || [])}`;
+        attachTrackEvents();
+      }
+    }catch(err){
+      console.error(err);
+      el.textContent = 'Error loading playlist.';
+    }
+  }else{
+    el.textContent = 'No playlist id provided.';
+  }
+  </script>
+</body>
+</html>
