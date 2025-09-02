@@ -1,39 +1,23 @@
-# Mr.FLEN Music — Audius (HTML only)
+# Mr.FLEN Music Library
 
-A single-file web app that searches and plays tracks from **Audius**. Built as a lightweight, futuristic library for **Mr.FLEN**.
+A sleek, HTML-only music browser that unifies **Audius** and **SoundCloud** tracks for Mr.FLEN. The `/public` folder contains the minimal Progressive Web App:
 
-The interface now follows a dark, glassy dashboard style similar to the provided mock‑up reference.
+- Dark, glassy dashboard UI.
+- Unified search (Audius + SoundCloud) with playback restricted to Mr.FLEN tracks.
+- Sticky player bar powered by the MediaSession API.
+- Installable PWA with offline shell caching.
 
-## User interface
+## Getting started
 
-The app ships as plain HTML files. Open `index.html` in a browser to explore the UI.
+1. Copy `.env.example` to `.env` and fill in your SoundCloud credentials.
+2. Serve the `public/` directory with any static host or open `public/index.html` directly in a browser.
 
-- **Header** – brand title with a login placeholder and global search bar (press `Ctrl/⌘+K`).
-- **Genre chips** – quickly filter trending tracks by UKG, Grime, House, or DNB.
-- **Trending carousel & featured banner** – showcase the latest release and popular tracks.
-- **Track cards** – hover to reveal play controls and a **Go To Track** button that links to `track.html`.
-- **Playlist cards** – navigate to `playlist.html` to browse trending playlists.
-- **Sticky player bar** – always-visible audio controls with a queue indicator.
+## Icons
 
-## Quick start
+The app icon is loaded from an external source so no binary images live in the repo:
 
-1. Replace the placeholder in `index.html`:
-   ```js
-   const AUDIUS_API_KEY  = "YOUR_AUDIUS_API_KEY";
-   // const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET"; // backend-only placeholder
-   ```
+- [Preview](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaF4gcqMi2_jDFJv-rNCvSR7LdGeumndQkew&s)
 
-2. Open `index.html` in a browser (or host with GitHub Pages).
+## Attribution
 
-## GitHub Pages
-
-- Push `index.html` to the repo root on the `main` branch.
-- In the repo settings → **Pages** → **Build and deployment** → Source: **Deploy from a branch** → Branch: `main` (root).
-- Your site will publish at: `https://<your-username-or-org>.github.io/mr-flen-music/`.
-
-## Notes
-
-- Uses REST endpoints via `https://api.audius.co` to pick a host and call:
-  - `GET /v1/tracks/search?query=...`
-  - `GET /v1/tracks/{trackId}/stream`
-- The API key is used **client-side (read-only)**. Keep any secrets on a backend only.
+Powered by the [Audius API](https://audius.org/) and [SoundCloud](https://soundcloud.com/).
