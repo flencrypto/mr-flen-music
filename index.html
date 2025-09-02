@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mr.FLENs Music Finder — Audius Library</title>
+  <link rel="stylesheet" href="/base.css" />
+  <style>
+    :root{--glow:#73f;--ink:#0a0a0a;--glass:rgba(255,255,255,.06)}
+    body{background:radial-gradient(1200px 600px at 20% -10%,#7f00ff22,transparent 60%),#07080d;color:#e8f0ff;font-family:Inter,system-ui,sans-serif;margin:0}
+    header,footer,main{max-width:1100px;margin:auto}
+    .glass{backdrop-filter:saturate(1.4) blur(12px);background:var(--glass);border:1px solid #fff1;border-radius:16px}
+    .grid{display:grid;gap:16px}
+    input#search{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #ffffff22;background:#0b1020;color:#eef;outline:none}
+    .track-card{display:grid;grid-template-columns:72px 1fr auto;gap:12px;padding:12px;align-items:center}
+    .track-card img{border-radius:10px}
+    .play{border:1px solid #9cf;color:#9cf;padding:8px 12px;border-radius:10px;background:#0000;cursor:pointer}
+    .play:hover{background:#9cf1;color:#002}
+    .pill{padding:2px 8px;border:1px solid #ffffff22;border-radius:999px;font-size:12px;opacity:.8}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <header class="glass grid" style="padding:12px 16px;margin:16px;">
+    <div class="row"><h1 style="margin:0">🎶 Mr.FLENs Music Finder</h1><span class="pill">Audius</span></div>
+    <input id="search" placeholder="Search Audius (Ctrl/⌘-K)" autocomplete="off" />
+  </header>
+
+  <main id="results" class="grid" style="padding:0 16px 100px;"></main>
+
+  <footer class="glass" style="position:fixed;left:0;right:0;bottom:0;padding:8px;margin:16px;">
+    <audio id="player" controls preload="none" style="width:100%"></audio>
+  </footer>
+
+<script type="module">
+/** ENV **/
+const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
+const AUDIUS_API_KEY  = "922e6edcae9856000bf6814a1ee5745bfb57734"; // public, read-only (ok in client)
+// BACKEND-ONLY (do NOT ship secrets to the browser):
+// const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET";
+
+/** REST implementation (no bundler required). **/
+async function pickHost(){
+  const res = await fetch('https://api.audius.co');
+  const { data } = await res.json();
+  return data[Math.floor(Math.random()*data.length)];
+}
+
+async function searchTracks(query){
+  const host = await pickHost();
+  const url  = `${host}/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+  const res  = await fetch(url, { headers: { Accept:'application/json' } });
+  const json = await res.json();
+  return json.data || [];
+}
+
+async function streamUrl(trackId){
+  const host = await pickHost();
+  return `${host}/v1/tracks/${trackId}/stream?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+}
+
+/** UI wiring **/
+const results = document.querySelector('#results');
+const player  = document.querySelector('#player');
+const search  = document.querySelector('#search');
+
+let debounceTimer = null;
+search.addEventListener('input', async (e)=>{
+  const q = e.target.value.trim();
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async () => {
+    if (!q){ results.innerHTML = ''; return; }
+    results.innerHTML = '<div class="glass" style="padding:16px;">Searching…</div>';
+    try{
+      const tracks = await searchTracks(q);
+      if(!tracks.length){
+        results.innerHTML = '<div class="glass" style="padding:16px;">No results.</div>';
+        return;
+      }
+      results.innerHTML = tracks.map(t => {
+        const art = (t.artwork && (t.artwork['150x150'] || t.artwork['480x480'])) || '';
+        const handle = t.user && t.user.handle ? t.user.handle : '';
+        return `
+          <div class="glass track-card">
+            <img src="${art}" width="72" height="72" loading="lazy" alt="artwork" />
+            <div>
+              <div style="font-weight:700">${t.title || ''}</div>
+              <div style="opacity:.7">@${handle}</div>
+            </div>
+            <button data-id="${t.id}" class="play">▶</button>
+          </div>`;
+      }).join('');
+      results.querySelectorAll('.play').forEach(btn=>{
+        btn.onclick = async () => {
+          const url = await streamUrl(btn.dataset.id);
+          player.src = url;
+          await player.play();
+        };
+      });
+    }catch(err){
+      console.error(err);
+      results.innerHTML = '<div class="glass" style="padding:16px;">Error contacting Audius API.</div>';
+    }
+  }, 250);
+});
+
+// ⌘/Ctrl-K to focus
+document.addEventListener('keydown', (e)=>{
+  if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); search.focus(); }
+});
+</script>
+</body>
+</html>
