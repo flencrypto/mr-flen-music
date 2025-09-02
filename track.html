@@ -1,106 +1,166 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Track Details - Mr.FLENs Music Finder</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
-  <style>
-    :root{
-      --color-primary:#5CF3FF;
-      --color-secondary:#9B5CFF;
-      --color-bg:#05060A;
-      --color-glass:rgba(255,255,255,0.06);
-      --color-text:#EAF4FF;
-      --color-muted:#8A96B3;
-    }
-    body{
-      background:var(--color-bg);
-      color:var(--color-text);
-      font-family:'Inter',system-ui,sans-serif;
-      margin:0;
-    }
-    .glass{
-      backdrop-filter:saturate(1.4) blur(12px);
-      background:var(--color-glass);
-      border:1px solid #ffffff11;
-      border-radius:16px;
-    }
-  </style>
-</head>
-<body>
-  <header class="glass" style="padding:12px 16px;margin:16px;">
-    <a href="index.html" class="pill" style="text-decoration:none;color:inherit">← Home</a>
-  </header>
-  <main id="track" class="glass" style="padding:16px;margin:16px;">Loading track…</main>
-  <footer class="glass" style="position:fixed;left:0;right:0;bottom:0;padding:8px;margin:16px;">
-    <audio id="player" controls preload="none" style="width:100%"></audio>
-  </footer>
-  <script type="module">
-  const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
-  const AUDIUS_API_KEY  = "922e6edcae9856000bf6814a1ee5745bfb57734";
-  const SOUNDCLOUD_CLIENT_ID = 'YOUR_SOUNDCLOUD_API_KEY';
-  async function pickHost(){
-    const res = await fetch('https://api.audius.co');
-    const { data } = await res.json();
-    return data[Math.floor(Math.random()*data.length)];
-  }
-  async function streamUrl(trackId){
-    const host = await pickHost();
-    return `${host}/v1/tracks/${trackId}/stream?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
-  }
-  async function fetchAudiusTrack(id){
-    const host = await pickHost();
-    const url = `${host}/v1/tracks/${id}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
-    const res = await fetch(url, { headers: { Accept:'application/json' } });
-    const json = await res.json();
-    return json.data || null;
-  }
-  async function fetchSoundCloudTrack(id){
-    const url = `https://api.soundcloud.com/tracks/${id}?client_id=${SOUNDCLOUD_CLIENT_ID}`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('sc');
-    return await res.json();
-  }
-  const el = document.querySelector('#track');
-  const playerContainer = document.querySelector('#player');
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
-  const platform = params.get('platform') || 'audius';
-  if(id){
-    try{
-      if(platform==='soundcloud'){
-        const t = await fetchSoundCloudTrack(id);
-        const art = t.artwork_url || '';
-        el.innerHTML = `
-          <img src="${art}" alt="artwork" style="width:200px;height:200px;border-radius:12px" />
-          <h1>${t.title || ''}</h1>
-          <p>@${t.user ? t.user.username : ''}</p>`;
-        const o = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(t.permalink_url)}`);
-        const { html } = await o.json();
-        playerContainer.outerHTML = html;
-      }else{
-        const t = await fetchAudiusTrack(id);
-        if(!t){ el.textContent = 'Track not found.'; }
-        else {
-          const art = (t.artwork && (t.artwork['480x480'] || t.artwork['150x150'])) || '';
-          const handle = t.user && t.user.handle ? t.user.handle : '';
-          el.innerHTML = `
-            <img src="${art}" alt="artwork" style="width:200px;height:200px;border-radius:12px" />
-            <h1>${t.title || ''}</h1>
-            <p>@${handle}</p>`;
-          playerContainer.src = await streamUrl(t.id);
-        }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Track Details - Mr.FLENs Music Finder</title>
+    <link
+      rel="icon"
+      href="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --color-primary: #c97c1a;
+        --color-secondary: #8b5e2e;
+        --color-bg: #1a0f0a;
+        --color-glass: rgba(80, 56, 40, 0.6);
+        --color-text: #f5e6c4;
+        --color-muted: #b2947d;
       }
-    }catch(err){
-      console.error(err);
-      el.textContent = 'Error loading track.';
-    }
-  }else{
-    el.textContent = 'No track id provided.';
-  }
-  </script>
-</body>
+      body {
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: "Cinzel", serif;
+        margin: 0;
+      }
+      .glass {
+        backdrop-filter: saturate(1.2) blur(10px);
+        background: var(--color-glass);
+        border: 1px solid var(--color-secondary);
+        border-radius: 16px;
+        box-shadow: 0 0 10px #000;
+      }
+      .pill {
+        padding: 2px 8px;
+        border: 1px solid var(--color-secondary);
+        border-radius: 999px;
+        font-size: 12px;
+        background: var(--color-glass);
+      }
+      .logo {
+        height: 40px;
+        width: 40px;
+        border-radius: 50%;
+        border: 2px solid var(--color-secondary);
+        box-shadow: 0 0 4px #000;
+      }
+    </style>
+  </head>
+  <body>
+    <header
+      class="glass"
+      style="
+        padding: 12px 16px;
+        margin: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      "
+    >
+      <img
+        src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg"
+        alt="Mr.FLEN logo"
+        class="logo"
+      />
+      <a
+        href="index.html"
+        class="pill"
+        style="text-decoration: none; color: inherit"
+        >← Home</a
+      >
+    </header>
+    <main id="track" class="glass" style="padding: 16px; margin: 16px">
+      Loading track…
+    </main>
+    <footer
+      class="glass"
+      style="
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 8px;
+        margin: 16px;
+      "
+    >
+      <audio id="player" controls preload="none" style="width: 100%"></audio>
+    </footer>
+    <script type="module">
+      const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
+      const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734";
+      const SOUNDCLOUD_CLIENT_ID = "YOUR_SOUNDCLOUD_API_KEY";
+      async function pickHost() {
+        const res = await fetch("https://api.audius.co");
+        const { data } = await res.json();
+        return data[Math.floor(Math.random() * data.length)];
+      }
+      async function streamUrl(trackId) {
+        const host = await pickHost();
+        return `${host}/v1/tracks/${trackId}/stream?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+      }
+      async function fetchAudiusTrack(id) {
+        const host = await pickHost();
+        const url = `${host}/v1/tracks/${id}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+        const res = await fetch(url, {
+          headers: { Accept: "application/json" },
+        });
+        const json = await res.json();
+        return json.data || null;
+      }
+      async function fetchSoundCloudTrack(id) {
+        const url = `https://api.soundcloud.com/tracks/${id}?client_id=${SOUNDCLOUD_CLIENT_ID}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("sc");
+        return await res.json();
+      }
+      const el = document.querySelector("#track");
+      const playerContainer = document.querySelector("#player");
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      const platform = params.get("platform") || "audius";
+      if (id) {
+        try {
+          if (platform === "soundcloud") {
+            const t = await fetchSoundCloudTrack(id);
+            const art = t.artwork_url || "";
+            el.innerHTML = `
+          <img src="${art}" alt="artwork" style="width:200px;height:200px;border-radius:12px" />
+          <h1>${t.title || ""}</h1>
+          <p>@${t.user ? t.user.username : ""}</p>`;
+            const o = await fetch(
+              `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(t.permalink_url)}`,
+            );
+            const { html } = await o.json();
+            playerContainer.outerHTML = html;
+          } else {
+            const t = await fetchAudiusTrack(id);
+            if (!t) {
+              el.textContent = "Track not found.";
+            } else {
+              const art =
+                (t.artwork && (t.artwork["480x480"] || t.artwork["150x150"])) ||
+                "";
+              const handle = t.user && t.user.handle ? t.user.handle : "";
+              el.innerHTML = `
+            <img src="${art}" alt="artwork" style="width:200px;height:200px;border-radius:12px" />
+            <h1>${t.title || ""}</h1>
+            <p>@${handle}</p>`;
+              playerContainer.src = await streamUrl(t.id);
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          el.textContent = "Error loading track.";
+        }
+      } else {
+        el.textContent = "No track id provided.";
+      }
+    </script>
+  </body>
 </html>
