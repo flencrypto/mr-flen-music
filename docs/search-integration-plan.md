@@ -9,12 +9,12 @@ placeholder is used for the SoundCloud API key.
 ### Audius
 - Endpoint: `GET https://api.audius.co/v1/search/tracks`
 - Params: `query` (user input), `app_name` `MrFLENMusicFinder`
-- Filter: only keep results where `track.user.handle === "mrflen"`
+- Filter: only keep results where `track.user.handle === "Mr.FLEN"`
 
 ### SoundCloud
 - Primary endpoint: `GET https://api.soundcloud.com/tracks`
-- Params: `client_id=YOUR_SOUNDCLOUD_API_KEY`, `q=Mr.FLEN`, `limit=20`
-- Filter locally so `track.user.username === "Mr.FLEN"`
+- Params: `client_id=YOUR_SOUNDCLOUD_API_KEY`, `q=mr-flen`, `limit=20`
+- Filter locally so `track.user.username === "mr-flen"`
 - Alternative: fetch user ID via `GET /users?q=Mr.FLEN` then `GET /users/{id}/tracks`
   and cache the ID for future calls.
 

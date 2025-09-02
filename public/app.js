@@ -17,8 +17,8 @@ const state = { queue: [], idx: -1, token: null };
 const BG_VIDEO_URL = 'https://scontent-lis1-1.cdninstagram.com/o1/v/t2/f2/m86/AQNR8AIMGj0wZWfnc2E-oDy8hqhL4OzFTFkuQIWRUNgevSbye_jDRibDpsEf4u9akLDOKgjBJ9PrtCnjg6Bd-aBRaCsn0B8ZT3bBD2E.mp4?_nc_cat=101&_nc_sid=5e9851&_nc_ht=scontent-lis1-1.cdninstagram.com&_nc_ohc=0pl2MZaJ2DAQ7kNvwGc5inD&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6NzEzNjU5NzcxMDU2ODIxLCJ2aV91c2VjYXNlX2lkIjoxMDA5OSwiZHVyYXRpb25fcyI6MTM5LCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=3952d4ec2590d28a&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC81NzQ1MjBFOEUyMDlEODQ0QzlDRkYwRDRDRERDOTI4OV92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HTkgwbWgwV3RGd0I3ZXNFQUhydERsSWh5NE1pYnFfRUFBQUYVAgLIARIAKAAYABsCiAd1c2Vfb2lsATEScHJvZ3Jlc3NpdmVfcmVjaXBlATEVAAAm6sqn0rvExAIVAigCQzMsF0BheZmZmZmaGBJkYXNoX2Jhc2VsaW5lXzFfdjERAHX-B2XmnQEA&_nc_gid=8YseOpuR_huJ3ix88klWxg&_nc_zt=28&oh=00_AfVvmQiGqR6wrk-x_afi20p5jHLjxVzqJWZLI8oFGI3mrw&oe=68B8C6AA';
 if (els.bgVideo) els.bgVideo.src = BG_VIDEO_URL;
 
-function isMrFlenName(name){ return (name||'').trim().toLowerCase() === (cfg.mrflens.soundcloudUsername||'mr.flen').toLowerCase(); }
-function isMrFlenAudius(handle){ return (handle||'').toLowerCase() === (cfg.mrflens.audiusHandle||'mrflen'); }
+function isMrFlenName(name){ return (name||'').trim().toLowerCase() === (cfg.mrflens.soundcloudUsername||'mr-flen').toLowerCase(); }
+function isMrFlenAudius(handle){ return (handle||'').toLowerCase() === (cfg.mrflens.audiusHandle||'Mr.FLEN').toLowerCase(); }
 
 async function audiusSearch(q){
   const u = new URL('https://discovery.audius.co/v1/tracks/search');
@@ -88,7 +88,7 @@ async function playFrom(arr, idx){
 
 document.querySelector('#searchBtn').onclick = async () => {
   const q = els.q.value.trim();
-  const [a, s] = await Promise.all([audiusSearch(q), soundcloudSearch(`${q} Mr.FLEN`)]);
+  const [a, s] = await Promise.all([audiusSearch(q), soundcloudSearch(`${q} ${cfg.mrflens.soundcloudUsername}`)]);
   const results = [...a, ...s].filter(t => t.isMrFlen);
   renderList(els.results, results);
 };

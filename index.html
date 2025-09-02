@@ -249,7 +249,8 @@
 
       const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
       const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734"; // public, read-only (ok in client)
-      const MRFLEN_HANDLE = "Mr.FLEN";
+      const MRFLEN_AUDIUS_HANDLE = "Mr.FLEN";
+      const MRFLEN_SC_USERNAME = "mr-flen";
       const SOUNDCLOUD_CLIENT_ID = "YOUR_SOUNDCLOUD_API_KEY";
       // BACKEND-ONLY (do NOT ship secrets to the browser):
       // const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET";
@@ -275,7 +276,7 @@
         const res = await fetch(url);
         if (!res.ok) throw new Error("sc");
         const json = await res.json();
-        return json.filter((t) => t.user && t.user.username === MRFLEN_HANDLE);
+        return json.filter((t) => t.user && t.user.username === MRFLEN_SC_USERNAME);
       }
 
       async function streamUrl(trackId) {
@@ -305,7 +306,7 @@
       }
 
       async function latestRelease() {
-        const tracks = await searchTracks("Mr.FLEN");
+        const tracks = await searchTracks(MRFLEN_AUDIUS_HANDLE);
         return tracks[0] ? normalizeAudiusTrack(tracks[0]) : null;
 
         async function fetchPlaylist(id) {
@@ -539,7 +540,7 @@
             ]);
             const tracks = [
               ...a
-                .filter((t) => t.user && t.user.handle === MRFLEN_HANDLE)
+                .filter((t) => t.user && t.user.handle === MRFLEN_AUDIUS_HANDLE)
                 .map(normalizeAudiusTrack),
               ...s.map(normalizeSoundCloudTrack),
             ];
