@@ -8,7 +8,7 @@ The interface now follows a dark, glassy dashboard style similar to the provided
 
 The app ships as plain HTML files. Open `index.html` in a browser to explore the UI.
 
-- **Header** – brand title with a login placeholder and global search bar (press `Ctrl/⌘+K`).
+- **Header** – brand title with a social login modal (Google/Facebook/Instagram) and global search bar (press `Ctrl/⌘+K`).
 - **Genre chips** – quickly filter trending tracks by UKG, Grime, House, or DNB.
 - **Trending carousel & featured banner** – showcase the latest release and popular tracks.
 - **Track cards** – hover to reveal play controls and a **Go To Track** button that links to `track.html`.
@@ -19,9 +19,9 @@ The app ships as plain HTML files. Open `index.html` in a browser to explore the
 
 1. Replace the placeholder in `index.html`:
    ```js
-   const AUDIUS_API_KEY  = "YOUR_AUDIUS_API_KEY";
-   // const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET"; // backend-only placeholder
-   ```
+ const AUDIUS_API_KEY  = "YOUR_AUDIUS_API_KEY";
+  // const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET"; // backend-only placeholder
+  ```
 
 2. Open `index.html` in a browser (or host with GitHub Pages).
 
@@ -34,6 +34,14 @@ The app ships as plain HTML files. Open `index.html` in a browser to explore the
 ## Notes
 
 - Uses REST endpoints via `https://api.audius.co` to pick a host and call:
-  - `GET /v1/tracks/search?query=...`
-  - `GET /v1/tracks/{trackId}/stream`
+ - `GET /v1/tracks/search?query=...`
+ - `GET /v1/tracks/{trackId}/stream`
 - The API key is used **client-side (read-only)**. Keep any secrets on a backend only.
+
+## Authentication
+
+- Replace the placeholder client IDs in `index.html`:
+  - `GOOGLE_CLIENT_ID`
+  - `FACEBOOK_APP_ID`
+  - `INSTAGRAM_CLIENT_ID`
+- Clicking **Login** opens a modal to sign in via Google, Facebook, or Instagram.
