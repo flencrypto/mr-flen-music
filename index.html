@@ -149,9 +149,23 @@
         border: 2px solid var(--color-secondary);
         box-shadow: 0 0 4px #000;
       }
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.6);
+      }
+      .hidden {
+        display: none;
+      }
     </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
   </head>
   <body>
+    <div id="fb-root"></div>
     <header class="glass grid" style="padding: 12px 16px; margin: 16px">
       <div
         class="row"
@@ -181,6 +195,20 @@
       />
       <div id="genres" class="row"></div>
     </header>
+
+    <div id="login-modal" class="modal hidden">
+      <div class="glass" style="padding:24px;max-width:320px;width:100%;">
+        <h2>Sign in</h2>
+        <div id="g_id_onload"
+             data-client_id="GOOGLE_CLIENT_ID"
+             data-context="signin"
+             data-callback="onGoogleSignIn"></div>
+        <div class="g_id_signin" data-type="standard" data-size="large"></div>
+        <div id="fb-login-btn" class="btn" style="margin-top:8px;">Login with Facebook</div>
+        <div id="insta-login-btn" class="btn" style="margin-top:8px;">Login with Instagram</div>
+        <div id="close-login" class="btn" style="margin-top:8px;background:transparent;border-color:var(--color-muted);color:var(--color-muted);">Close</div>
+      </div>
+    </div>
 
     <main id="results" class="grid" style="padding: 0 16px 140px"></main>
 
@@ -331,12 +359,23 @@
       let audioPlayer = document.querySelector("#player");
       const search = document.querySelector("#search");
       const login = document.querySelector("#login");
+      const loginModal = document.querySelector("#login-modal");
+      const fbLoginBtn = document.querySelector("#fb-login-btn");
+      const instaLoginBtn = document.querySelector("#insta-login-btn");
+      const closeLogin = document.querySelector("#close-login");
       const nextBtn = document.querySelector("#next");
       const shuffleBtn = document.querySelector("#shuffle");
       const queueLabel = document.querySelector("#queueLabel");
       const genresEl = document.querySelector("#genres");
       const GENRES = ["All", "UKG", "Grime", "House", "DNB"];
       let currentGenre = null;
+      if (window.location.hash.includes("access_token")) {
+        const token = new URLSearchParams(window.location.hash.substring(1)).get(
+          "access_token"
+        );
+        alert("Instagram access token: " + token);
+        window.location.hash = "";
+      }
       GENRES.forEach((g) => {
         const chip = document.createElement("button");
         chip.textContent = g;
@@ -535,7 +574,42 @@
         }
       };
 
-      login.onclick = () => alert("OAuth login coming soon");
+      login.onclick = () => loginModal.classList.remove("hidden");
+      closeLogin.onclick = () => loginModal.classList.add("hidden");
+      window.onGoogleSignIn = (res) => {
+        alert("Google login token: " + res.credential);
+        loginModal.classList.add("hidden");
+      };
+      window.fbAsyncInit = function () {
+        FB.init({
+          appId: "FACEBOOK_APP_ID",
+          cookie: true,
+          xfbml: true,
+          version: "v19.0",
+        });
+      };
+      fbLoginBtn.onclick = () => {
+        FB.login(
+          (response) => {
+            if (response.authResponse) {
+              alert("Logged in with Facebook");
+              loginModal.classList.add("hidden");
+            }
+          },
+          { scope: "public_profile,email" }
+        );
+      };
+      instaLoginBtn.onclick = () => {
+        const clientId = "INSTAGRAM_CLIENT_ID";
+        const redirectUri =
+          window.location.origin +
+          window.location.pathname +
+          window.location.search;
+        const url = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+          redirectUri
+        )}&scope=user_profile&response_type=token`;
+        window.location.href = url;
+      };
 
       loadHome(currentGenre);
 
