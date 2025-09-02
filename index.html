@@ -130,7 +130,6 @@ const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
 const AUDIUS_API_KEY  = "922e6edcae9856000bf6814a1ee5745bfb57734"; // public, read-only (ok in client)
 const MRFLEN_HANDLE   = "Mr.FLEN";
 const SOUNDCLOUD_CLIENT_ID = 'YOUR_SOUNDCLOUD_API_KEY';
-
 // BACKEND-ONLY (do NOT ship secrets to the browser):
 // const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET";
 
@@ -168,7 +167,6 @@ async function trendingTracks(genre){
   const res = await fetch(url, { headers: { Accept:'application/json' } });
   const json = await res.json();
   return (json.data || []).map(normalizeAudiusTrack);
-
 }
 
 async function trendingPlaylists(){
@@ -190,7 +188,6 @@ async function fetchPlaylist(id){
   const json = await res.json();
   return json.data || null;
 }
-
 
 }
 
@@ -225,7 +222,6 @@ function normalizeSoundCloudTrack(t){
     permalink_url:t.permalink_url,
     user:{ handle: t.user && t.user.username ? t.user.username : '' }
   };
-
 }
 
 /** UI wiring **/
@@ -345,7 +341,6 @@ async function loadHome(genre){
       ${renderFeatured(feature)}
       <h2>Trending Tracks${genreLabel}</h2>
       <div class="carousel">${renderTracksList(tracks,true)}</div>
-
       <h2>Trending Playlists</h2>
       ${renderPlaylistList(playlists)}
     `;

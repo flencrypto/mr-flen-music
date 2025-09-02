@@ -2,6 +2,17 @@
 
 A single-file web app that searches and plays tracks from **Audius**. Built as a lightweight, futuristic library for **Mr.FLEN**.
 
+## User interface
+
+The app ships as plain HTML files. Open `index.html` in a browser to explore the UI.
+
+- **Header** – brand title with a login placeholder and global search bar (press `Ctrl/⌘+K`).
+- **Genre chips** – quickly filter trending tracks by UKG, Grime, House, or DNB.
+- **Trending carousel & featured banner** – showcase the latest release and popular tracks.
+- **Track cards** – hover to reveal play controls and a **Go To Track** button that links to `track.html`.
+- **Playlist cards** – navigate to `playlist.html` to browse trending playlists.
+- **Sticky player bar** – always-visible audio controls with a queue indicator.
+
 ## Quick start
 
 1. Replace the placeholder in `index.html`:
