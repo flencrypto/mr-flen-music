@@ -1,0 +1,20 @@
+{
+  "name": "Mr.FLEN’s Music Finder",
+  "short_name": "FLEN Finder",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1017",
+  "theme_color": "#0b1017",
+  "icons": [
+    {
+      "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaF4gcqMi2_jDFJv-rNCvSR7LdGeumndQkew&s",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaF4gcqMi2_jDFJv-rNCvSR7LdGeumndQkew&s",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

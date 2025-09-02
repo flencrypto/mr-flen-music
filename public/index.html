@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Mr.FLEN’s Music Finder</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaF4gcqMi2_jDFJv-rNCvSR7LdGeumndQkew&s">
+  <link rel="stylesheet" href="styles.css">
+  <meta name="theme-color" content="#0b1017">
+</head>
+<body>
+  <video id="bg-video" autoplay muted loop playsinline aria-hidden="true"></video>
+  <header class="topbar">
+    <div class="brand">Mr.FLEN’s</div>
+    <div class="search">
+      <input id="q" type="search" placeholder="Search for music…" aria-label="Search for music" autocomplete="off" />
+      <button id="searchBtn" class="btn">Search</button>
+    </div>
+    <nav class="actions">
+      <button id="connectSC" class="btn sc">Connect with SoundCloud</button>
+      <button id="libraryBtn" class="btn">Library</button>
+      <button id="settingsBtn" class="icon" aria-label="Settings">⚙️</button>
+    </nav>
+  </header>
+
+  <main class="grid">
+    <section class="panel hero" aria-labelledby="heroTitle">
+      <h1 id="heroTitle">Midnight Vibes</h1>
+      <p class="muted">Mr. FLEN</p>
+      <div class="trending" id="trending"></div>
+    </section>
+
+    <section class="panel results" aria-labelledby="resultsTitle">
+      <div class="tabs">
+        <button class="tab active" data-tab="tracks">Tracks (Mr.FLEN)</button>
+        <button class="tab" data-tab="artists">Artists</button>
+        <button class="tab" data-tab="playlists">Playlists</button>
+        <button class="tab" data-tab="all">All</button>
+      </div>
+      <ul id="resultsList" class="list" aria-live="polite"></ul>
+    </section>
+
+    <aside class="panel library" aria-label="Library">
+      <div class="tabs">
+        <button class="tab active" data-tab="my">My Tracks</button>
+        <button class="tab" data-tab="likes">Liked Tracks</button>
+        <button class="tab" data-tab="reposts">Reposts</button>
+      </div>
+      <ul id="libraryList" class="list"></ul>
+    </aside>
+  </main>
+
+  <footer class="player" aria-label="Now Playing">
+    <div class="np-meta">
+      <img id="npArt" class="art" alt="" />
+      <div>
+        <div id="npTitle" class="title">Nothing playing</div>
+        <div id="npArtist" class="artist"></div>
+      </div>
+      <span id="npBadge" class="badge">–</span>
+    </div>
+    <div class="np-controls">
+      <button id="prevBtn" aria-label="Previous">⏮</button>
+      <button id="playPauseBtn" aria-label="Play/Pause">▶️</button>
+      <button id="nextBtn" aria-label="Next">⏭</button>
+      <input id="seek" type="range" min="0" max="100" value="0" aria-label="Seek">
+    </div>
+    <audio id="audio" crossorigin="anonymous"></audio>
+  </footer>
+
+  <!-- Config injected at build/deploy time -->
+  <script id="config" type="application/json">
+    {
+      "audiusKey": "922e6edcae9856000bf6814a1ee5745bfb57734",
+      "scClientId": "YOUR_SOUNDCLOUD_CLIENT_ID",
+      "scRedirectUri": "https://your.app/callback",
+      "mrflens": { "audiusHandle": "mrflen", "soundcloudUsername": "Mr.FLEN" }
+    }
+  </script>
+  <script src="app.js" defer></script>
+</body>
+</html>
