@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Track Details - Mr.FLENs Music Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --color-primary:#5CF3FF;
+      --color-secondary:#9B5CFF;
+      --color-bg:#05060A;
+      --color-glass:rgba(255,255,255,0.06);
+      --color-text:#EAF4FF;
+      --color-muted:#8A96B3;
+    }
+    body{
+      background:var(--color-bg);
+      color:var(--color-text);
+      font-family:'Inter',system-ui,sans-serif;
+      margin:0;
+    }
+    .glass{
+      backdrop-filter:saturate(1.4) blur(12px);
+      background:var(--color-glass);
+      border:1px solid #ffffff11;
+      border-radius:16px;
+    }
+  </style>
+</head>
+<body>
+  <main id="track" class="glass" style="padding:16px;margin:16px;">Loading track…</main>
+  <script type="module">
+  const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
+  const AUDIUS_API_KEY  = "922e6edcae9856000bf6814a1ee5745bfb57734";
+  async function pickHost(){
+    const res = await fetch('https://api.audius.co');
+    const { data } = await res.json();
+    return data[Math.floor(Math.random()*data.length)];
+  }
+  async function fetchTrack(id){
+    const host = await pickHost();
+    const url = `${host}/v1/tracks/${id}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+    const res = await fetch(url, { headers: { Accept:'application/json' } });
+    const json = await res.json();
+    return json.data || null;
+  }
+  const el = document.querySelector('#track');
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if(id){
+    try{
+      const t = await fetchTrack(id);
+      if(!t){ el.textContent = 'Track not found.'; }
+      else {
+        const art = (t.artwork && (t.artwork['480x480'] || t.artwork['150x150'])) || '';
+        const handle = t.user && t.user.handle ? t.user.handle : '';
+        el.innerHTML = `
+          <img src="${art}" alt="artwork" style="width:200px;height:200px;border-radius:12px" />
+          <h1>${t.title || ''}</h1>
+          <p>@${handle}</p>
+        `;
+      }
+    }catch(err){
+      console.error(err);
+      el.textContent = 'Error loading track.';
+    }
+  }else{
+    el.textContent = 'No track id provided.';
+  }
+  </script>
+</body>
+</html>
