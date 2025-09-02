@@ -1,0 +1,9 @@
+{
+  "name": "mr-flen-music",
+  "version": "1.0.0",
+  "description": "A sleek, HTML-only music browser that unifies Audius and SoundCloud tracks for Mr.FLEN.",
+  "license": "MIT",
+  "scripts": {
+    "test": "echo \"No tests specified\" && exit 0"
+  }
+}
