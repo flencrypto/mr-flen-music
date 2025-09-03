@@ -354,6 +354,61 @@
         };
       }
 
+      const LIKED_KEY = 'likedTracks';
+      const PLAYLIST_KEY = 'customPlaylists';
+
+      let likedTracks = [];
+      let customPlaylists = [];
+
+      function loadPreferences() {
+        try {
+          return {
+            liked: JSON.parse(localStorage.getItem(LIKED_KEY)) || [],
+            playlists: JSON.parse(localStorage.getItem(PLAYLIST_KEY)) || [],
+          };
+        } catch {
+          return { liked: [], playlists: [] };
+        }
+      }
+
+      function savePreferences() {
+        try {
+          localStorage.setItem(LIKED_KEY, JSON.stringify(likedTracks));
+          localStorage.setItem(
+            PLAYLIST_KEY,
+            JSON.stringify(customPlaylists)
+          );
+        } catch {
+          // Ignore storage write errors
+        }
+      }
+
+      function isLiked(track) {
+        return likedTracks.some(
+          (t) => t.id === track.id && t.platform === track.platform
+        );
+      }
+
+      function toggleLike(track) {
+        if (isLiked(track)) {
+          likedTracks = likedTracks.filter(
+            (t) => !(t.id === track.id && t.platform === track.platform)
+          );
+        } else {
+          likedTracks.push(track);
+        }
+        savePreferences();
+      }
+
+      function savePlaylist(pl) {
+        const idx = customPlaylists.findIndex((p) => p.name === pl.name);
+        if (idx > -1) customPlaylists[idx] = pl;
+        else customPlaylists.push(pl);
+        savePreferences();
+      }
+
+      ({ liked: likedTracks, playlists: customPlaylists } = loadPreferences());
+
       /** UI wiring **/
 
       const results = document.querySelector("#results");
@@ -433,6 +488,9 @@
               buttons.push(
                 `<button data-platform="${t.platform}" data-id="${t.id}" class="btn queue">➕</button>`,
               );
+            buttons.push(
+              `<button data-platform="${t.platform}" data-id="${t.id}" class="btn like">${isLiked(t) ? "♥" : "♡"}</button>`,
+            );
             if (includeLink)
               buttons.push(
                 `<a href="track.html?platform=${t.platform}&id=${t.id}" class="btn">Go To Track</a>`,
@@ -471,6 +529,14 @@
             const track = trackCache[key];
             queue.push(track);
             updateQueue();
+          };
+        });
+        container.querySelectorAll(".like").forEach((btn) => {
+          btn.onclick = () => {
+            const key = `${btn.dataset.platform}:${btn.dataset.id}`;
+            const track = trackCache[key];
+            toggleLike(track);
+            btn.textContent = isLiked(track) ? "♥" : "♡";
           };
         });
       }
