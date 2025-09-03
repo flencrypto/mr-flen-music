@@ -12,6 +12,10 @@ const els = {
   playPause: document.querySelector('#playPauseBtn'),
   searchBtn: document.querySelector('#searchBtn'),
   bgVideo: document.querySelector('#bg-video'),
+  openPalette: document.querySelector('#openPalette'),
+  palette: document.querySelector('#palette'),
+  paletteInput: document.querySelector('#paletteInput'),
+  paletteList: document.querySelector('#paletteList'),
   analytics: {
     likes: document.querySelector('#likesCount'),
     reposts: document.querySelector('#repostsCount'),
@@ -20,6 +24,14 @@ const els = {
 };
 
 const state = { queue: [], idx: -1, token: null };
+
+const RECENT_KEY = 'recentQueries';
+let recent = [];
+try {
+  recent = JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+} catch {
+  recent = [];
+}
 
 const BG_VIDEO_URL = 'https://scontent-lis1-1.cdninstagram.com/o1/v/t2/f2/m86/AQNR8AIMGj0wZWfnc2E-oDy8hqhL4OzFTFkuQIWRUNgevSbye_jDRibDpsEf4u9akLDOKgjBJ9PrtCnjg6Bd-aBRaCsn0B8ZT3bBD2E.mp4?_nc_cat=101&_nc_sid=5e9851&_nc_ht=scontent-lis1-1.cdninstagram.com&_nc_ohc=0pl2MZaJ2DAQ7kNvwGc5inD&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6NzEzNjU5NzcxMDU2ODIxLCJ2aV91c2VjYXNlX2lkIjoxMDA5OSwiZHVyYXRpb25fcyI6MTM5LCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=3952d4ec2590d28a&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC81NzQ1MjBFOEUyMDlEODQ0QzlDRkYwRDRDRERDOTI4OV92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HTkgwbWgwV3RGd0I3ZXNFQUhydERsSWh5NE1pYnFfRUFBQUYVAgLIARIAKAAYABsCiAd1c2Vfb2lsATEScHJvZ3Jlc3NpdmVfcmVjaXBlATEVAAAm6sqn0rvExAIVAigCQzMsF0BheZmZmZmaGBJkYXNoX2Jhc2VsaW5lXzFfdjERAHX-B2XmnQEA&_nc_gid=8YseOpuR_huJ3ix88klWxg&_nc_zt=28&oh=00_AfVvmQiGqR6wrk-x_afi20p5jHLjxVzqJWZLI8oFGI3mrw&oe=68B8C6AA';
 if (els.bgVideo) els.bgVideo.src = BG_VIDEO_URL;
@@ -104,6 +116,39 @@ function renderList(listEl, tracks){
   });
 }
 
+function saveRecent(){
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0,10))); } catch {}
+}
+
+function renderRecent(filter=''){
+  if(!els.paletteList) return;
+  const q = filter.trim().toLowerCase();
+  els.paletteList.innerHTML = '';
+  recent.filter(r => r.toLowerCase().includes(q)).forEach(r => {
+    const li = document.createElement('li');
+    li.textContent = r;
+    li.addEventListener('click', () => {
+      els.q.value = r;
+      hidePalette();
+      runSearch();
+    });
+    els.paletteList.appendChild(li);
+  });
+}
+
+function showPalette(){
+  if(!els.palette) return;
+  els.palette.classList.remove('hidden');
+  renderRecent();
+  els.paletteInput.value='';
+  els.paletteInput.focus();
+}
+
+function hidePalette(){
+  if(!els.palette) return;
+  els.palette.classList.add('hidden');
+}
+
 async function ensureStreamUrl(track){
   if (track.platform==='soundcloud' && !track.streamUrl){
     const u = `https://api.soundcloud.com/tracks/${track.id}/streams${cfg.scClientId?`?client_id=${cfg.scClientId}`:''}`;
@@ -128,6 +173,11 @@ async function playFrom(arr, idx){
 async function runSearch(){
   const q = els.q.value.trim();
   if(!q) return;
+  if(!recent.includes(q)){
+    recent.unshift(q);
+    if(recent.length>10) recent.pop();
+    saveRecent();
+  }
   els.searchBtn.disabled = true;
   els.searchBtn.classList.add('loading');
   if(els.status) els.status.textContent = 'Searching…';
@@ -147,6 +197,25 @@ async function runSearch(){
 
 els.searchBtn.onclick = runSearch;
 els.q.addEventListener('keydown', e => { if(e.key === 'Enter') runSearch(); });
+
+els.openPalette?.addEventListener('click', showPalette);
+document.addEventListener('keydown', e => {
+  if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){
+    e.preventDefault(); showPalette();
+  } else if(e.key === 'Escape') {
+    hidePalette();
+  }
+});
+els.paletteInput?.addEventListener('input', () => renderRecent(els.paletteInput.value));
+els.paletteInput?.addEventListener('keydown', e => {
+  if(e.key === 'Enter'){
+    els.q.value = els.paletteInput.value.trim();
+    hidePalette();
+    runSearch();
+  } else if(e.key === 'Escape') {
+    hidePalette();
+  }
+});
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js');
