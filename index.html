@@ -211,6 +211,9 @@
         <div class="g_id_signin" data-type="standard" data-size="large"></div>
         <div id="fb-login-btn" class="btn" style="margin-top:8px;">Login with Facebook</div>
         <div id="insta-login-btn" class="btn" style="margin-top:8px;">Login with Instagram</div>
+        <div id="x-login-btn" class="btn" style="margin-top:8px;">Login with X</div>
+        <div id="snap-login-btn" class="btn" style="margin-top:8px;">Login with Snapchat</div>
+        <div id="tiktok-login-btn" class="btn" style="margin-top:8px;">Login with TikTok</div>
         <div id="close-login" class="btn" style="margin-top:8px;background:transparent;border-color:var(--color-muted);color:var(--color-muted);">Close</div>
       </div>
     </div>
@@ -241,7 +244,6 @@
         <audio id="player" controls preload="none" style="width: 100%"></audio>
       </div>
     </footer>
-
     <script src="public/drive.js"></script>
     <script type="module">
       /**
@@ -360,6 +362,61 @@
         };
       }
 
+      const LIKED_KEY = 'likedTracks';
+      const PLAYLIST_KEY = 'customPlaylists';
+
+      let likedTracks = [];
+      let customPlaylists = [];
+
+      function loadPreferences() {
+        try {
+          return {
+            liked: JSON.parse(localStorage.getItem(LIKED_KEY)) || [],
+            playlists: JSON.parse(localStorage.getItem(PLAYLIST_KEY)) || [],
+          };
+        } catch {
+          return { liked: [], playlists: [] };
+        }
+      }
+
+      function savePreferences() {
+        try {
+          localStorage.setItem(LIKED_KEY, JSON.stringify(likedTracks));
+          localStorage.setItem(
+            PLAYLIST_KEY,
+            JSON.stringify(customPlaylists)
+          );
+        } catch {
+          // Ignore storage write errors
+        }
+      }
+
+      function isLiked(track) {
+        return likedTracks.some(
+          (t) => t.id === track.id && t.platform === track.platform
+        );
+      }
+
+      function toggleLike(track) {
+        if (isLiked(track)) {
+          likedTracks = likedTracks.filter(
+            (t) => !(t.id === track.id && t.platform === track.platform)
+          );
+        } else {
+          likedTracks.push(track);
+        }
+        savePreferences();
+      }
+
+      function savePlaylist(pl) {
+        const idx = customPlaylists.findIndex((p) => p.name === pl.name);
+        if (idx > -1) customPlaylists[idx] = pl;
+        else customPlaylists.push(pl);
+        savePreferences();
+      }
+
+      ({ liked: likedTracks, playlists: customPlaylists } = loadPreferences());
+
       /** UI wiring **/
 
       const results = document.querySelector("#results");
@@ -369,18 +426,22 @@
       const loginModal = document.querySelector("#login-modal");
       const fbLoginBtn = document.querySelector("#fb-login-btn");
       const instaLoginBtn = document.querySelector("#insta-login-btn");
+      const xLoginBtn = document.querySelector("#x-login-btn");
+      const snapLoginBtn = document.querySelector("#snap-login-btn");
+      const tiktokLoginBtn = document.querySelector("#tiktok-login-btn");
       const closeLogin = document.querySelector("#close-login");
       const nextBtn = document.querySelector("#next");
       const shuffleBtn = document.querySelector("#shuffle");
       const queueLabel = document.querySelector("#queueLabel");
       const genresEl = document.querySelector("#genres");
+      const { handleAuthSuccess } = window;
       const GENRES = ["All", "UKG", "Grime", "House", "DNB"];
       let currentGenre = null;
       if (window.location.hash.includes("access_token")) {
-        const token = new URLSearchParams(window.location.hash.substring(1)).get(
-          "access_token"
-        );
-        alert("Instagram access token: " + token);
+        const params = new URLSearchParams(window.location.hash.substring(1));
+        const token = params.get("access_token");
+        const provider = params.get("state");
+        if (token && provider) handleAuthSuccess(provider, token);
         window.location.hash = "";
       }
       GENRES.forEach((g) => {
@@ -439,6 +500,9 @@
               buttons.push(
                 `<button data-platform="${t.platform}" data-id="${t.id}" class="btn queue">➕</button>`,
               );
+            buttons.push(
+              `<button data-platform="${t.platform}" data-id="${t.id}" class="btn like">${isLiked(t) ? "♥" : "♡"}</button>`,
+            );
             if (includeLink)
               buttons.push(
                 `<a href="track.html?platform=${t.platform}&id=${t.id}" class="btn">Go To Track</a>`,
@@ -477,6 +541,14 @@
             const track = trackCache[key];
             queue.push(track);
             updateQueue();
+          };
+        });
+        container.querySelectorAll(".like").forEach((btn) => {
+          btn.onclick = () => {
+            const key = `${btn.dataset.platform}:${btn.dataset.id}`;
+            const track = trackCache[key];
+            toggleLike(track);
+            btn.textContent = isLiked(track) ? "♥" : "♡";
           };
         });
       }
@@ -584,8 +656,7 @@
       login.onclick = () => loginModal.classList.remove("hidden");
       closeLogin.onclick = () => loginModal.classList.add("hidden");
       window.onGoogleSignIn = (res) => {
-        alert("Google login token: " + res.credential);
-        loginModal.classList.add("hidden");
+        handleAuthSuccess("google", res.credential);
       };
       window.fbAsyncInit = function () {
         FB.init({
@@ -599,22 +670,46 @@
         FB.login(
           (response) => {
             if (response.authResponse) {
-              alert("Logged in with Facebook");
-              loginModal.classList.add("hidden");
+              handleAuthSuccess("facebook", response.authResponse.accessToken);
             }
           },
           { scope: "public_profile,email" }
         );
       };
+      const buildRedirectUri = () =>
+        window.location.origin +
+        window.location.pathname +
+        window.location.search;
       instaLoginBtn.onclick = () => {
-        const clientId = "INSTAGRAM_CLIENT_ID";
-        const redirectUri =
-          window.location.origin +
-          window.location.pathname +
-          window.location.search;
+        const clientId = process?.env?.INSTAGRAM_CLIENT_ID;
+        const redirectUri = buildRedirectUri();
         const url = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
           redirectUri
-        )}&scope=user_profile&response_type=token`;
+        )}&scope=user_profile&response_type=token&state=instagram`;
+        window.location.href = url;
+      };
+      xLoginBtn.onclick = () => {
+        const clientId = process?.env?.X_CLIENT_ID;
+        const redirectUri = buildRedirectUri();
+        const url = `https://twitter.com/i/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(
+          redirectUri
+        )}&scope=tweet.read%20users.read&state=x`;
+        window.location.href = url;
+      };
+      snapLoginBtn.onclick = () => {
+        const clientId = process?.env?.SNAPCHAT_CLIENT_ID;
+        const redirectUri = buildRedirectUri();
+        const url = `https://accounts.snapchat.com/accounts/oauth2/auth?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(
+          redirectUri
+        )}&scope=snapchat_marketing_api&state=snapchat`;
+        window.location.href = url;
+      };
+      tiktokLoginBtn.onclick = () => {
+        const clientId = process?.env?.TIKTOK_CLIENT_ID;
+        const redirectUri = buildRedirectUri();
+        const url = `https://www.tiktok.com/auth/authorize?client_key=${clientId}&redirect_uri=${encodeURIComponent(
+          redirectUri
+        )}&response_type=token&scope=user.info.basic&state=tiktok`;
         window.location.href = url;
       };
 
