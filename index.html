@@ -10,6 +10,9 @@
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script>
+      window.GOOGLE_CLIENT_ID = window.GOOGLE_CLIENT_ID || '';
+    </script>
       <link
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;700&display=swap"
         rel="stylesheet"
@@ -187,6 +190,8 @@
         >
           Login
         </button>
+        <button id="backup-btn" class="pill" style="cursor:pointer;background:#0000;display:none;">Backup</button>
+        <button id="restore-btn" class="pill" style="cursor:pointer;background:#0000;">Restore</button>
       </div>
       <input
         id="search"
@@ -239,8 +244,7 @@
         <audio id="player" controls preload="none" style="width: 100%"></audio>
       </div>
     </footer>
-
-    <script src="auth.js"></script>
+    <script src="public/drive.js"></script>
     <script type="module">
       /**
        * Audius REST integration for Mr.FLENs Music Finder.
@@ -722,6 +726,55 @@
         if (queue.length) {
           currentIndex = Math.floor(Math.random() * queue.length);
           playTrack(queue[currentIndex]);
+        }
+      };
+
+      // Google Drive backup and restore
+      function initDriveBackup() {
+        if (!window.DriveBackup || !window.GOOGLE_CLIENT_ID) return;
+        (function poll() {
+          if (window.google) {
+            DriveBackup.init(window.GOOGLE_CLIENT_ID);
+          } else {
+            setTimeout(poll, 100);
+          }
+        })();
+      }
+      initDriveBackup();
+      const backupBtn = document.getElementById("backup-btn");
+      const restoreBtn = document.getElementById("restore-btn");
+      function showBackup() {
+        backupBtn.style.display = "inline-block";
+      }
+      const originalSetItem = localStorage.setItem.bind(localStorage);
+      localStorage.setItem = (k, v) => {
+        originalSetItem(k, v);
+        showBackup();
+      };
+      backupBtn.onclick = async () => {
+        try {
+          await DriveBackup.upload({ localStorage: { ...localStorage } });
+          backupBtn.style.display = "none";
+          alert("Backup complete");
+        } catch (err) {
+          console.error(err);
+          alert("Backup failed");
+        }
+      };
+      restoreBtn.onclick = async () => {
+        try {
+          const data = await DriveBackup.download();
+          if (data && data.localStorage) {
+            for (const [k, v] of Object.entries(data.localStorage)) {
+              originalSetItem(k, v);
+            }
+            alert("Restore complete");
+          } else {
+            alert("No backup found");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Restore failed");
         }
       };
     </script>
