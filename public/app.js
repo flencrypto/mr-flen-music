@@ -131,6 +131,7 @@ async function runSearch(){
   els.searchBtn.disabled = true;
   els.searchBtn.classList.add('loading');
   if(els.status) els.status.textContent = 'Searching…';
+
   const [aRes, sRes] = await Promise.allSettled([
     audiusSearch(q),
     soundcloudSearch(`${q} ${cfg.mrflens?.soundcloudUsername || 'mr-flen'}`)
