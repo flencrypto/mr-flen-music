@@ -33,6 +33,13 @@ body::before{
 .btn.loading{position:relative; pointer-events:none;}
 .btn.loading::after{content:""; position:absolute; right:12px; top:50%; width:16px; height:16px; margin-top:-8px; border:2px solid currentColor; border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite;}
 .btn.secondary{background:transparent; border-color:var(--brand); color:var(--brand);}
+.palette{position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:1000;}
+.palette.hidden{display:none;}
+.palette-box{background:var(--panel); backdrop-filter:blur(var(--blur)); padding:16px; border-radius:var(--radius); box-shadow:var(--shadow); min-width:280px; max-width:90%;}
+.palette-box input{width:100%; padding:10px; border-radius:8px; border:1px solid #24344a; background:#101624; color:var(--text);}
+.palette-box ul{list-style:none; margin:8px 0 0; padding:0; max-height:160px; overflow:auto;}
+.palette-box li{padding:6px 8px; border-radius:6px; cursor:pointer;}
+.palette-box li:hover{background:rgba(255,255,255,.08);}
 .panel{background:var(--panel); backdrop-filter: blur(var(--blur)); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; border:1px solid rgba(255,255,255,.05);}
 .grid{display:grid; gap:16px; grid-template-columns: 1.5fr 2fr 1.2fr; padding:16px; align-items:start;}
 .list{list-style:none; margin:0; padding:0;}
@@ -71,6 +78,7 @@ body::before{
 <body>
   <video id="bg-video" autoplay muted loop playsinline aria-hidden="true"></video>
   <header class="topbar">
+    <button id="openPalette" class="btn" aria-label="Command palette (Ctrl/⌘K)">⌘K</button>
     <div class="brand">Mr.FLEN’s</div>
     <div class="search">
       <input id="q" type="search" placeholder="Search for music…" aria-label="Search for music" autocomplete="off" />
@@ -82,6 +90,13 @@ body::before{
       <button id="settingsBtn" class="icon" aria-label="Settings">⚙️</button>
     </nav>
   </header>
+
+  <div id="palette" class="palette hidden" role="dialog" aria-modal="true">
+    <div class="palette-box">
+      <input id="paletteInput" type="text" placeholder="Type a search..." aria-label="Command palette input" />
+      <ul id="paletteList"></ul>
+    </div>
+  </div>
 
   <main class="grid">
     <section class="panel hero" aria-labelledby="heroTitle">
