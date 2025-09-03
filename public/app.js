@@ -23,7 +23,63 @@ const els = {
   }
 };
 
-const state = { queue: [], idx: -1, token: null };
+const LIKED_KEY = 'likedTracks';
+const PLAYLIST_KEY = 'customPlaylists';
+
+function loadPreferences() {
+  try {
+    return {
+      liked: JSON.parse(localStorage.getItem(LIKED_KEY)) || [],
+      playlists: JSON.parse(localStorage.getItem(PLAYLIST_KEY)) || []
+    };
+  } catch {
+    return { liked: [], playlists: [] };
+  }
+}
+
+function savePreferences() {
+  try {
+    localStorage.setItem(LIKED_KEY, JSON.stringify(state.likedTracks));
+    localStorage.setItem(PLAYLIST_KEY, JSON.stringify(state.customPlaylists));
+  } catch {
+    // Swallow write errors (e.g. storage quota exceeded)
+  }
+}
+
+function isLiked(track) {
+  return state.likedTracks.some(
+    (t) => t.id === track.id && t.platform === track.platform
+  );
+}
+
+function toggleLike(track) {
+  if (isLiked(track)) {
+    state.likedTracks = state.likedTracks.filter(
+      (t) => !(t.id === track.id && t.platform === track.platform)
+    );
+  } else {
+    state.likedTracks.push(track);
+  }
+  savePreferences();
+}
+
+function savePlaylist(pl) {
+  const idx = state.customPlaylists.findIndex((p) => p.name === pl.name);
+  if (idx > -1) state.customPlaylists[idx] = pl;
+  else state.customPlaylists.push(pl);
+  savePreferences();
+}
+
+const state = {
+  queue: [],
+  idx: -1,
+  token: null,
+  likedTracks: [],
+  customPlaylists: []
+};
+
+({ liked: state.likedTracks, playlists: state.customPlaylists } =
+  loadPreferences());
 
 // Setup Google Drive backup buttons
 const backupBtn = document.createElement('button');
@@ -136,10 +192,16 @@ function renderList(listEl, tracks){
       <span class="badge">${t.platform === 'audius' ? 'Audius' : 'SC'}</span>
       <div class="track-actions">
         <button class="btn play" ${t.isMrFlen ? '' : 'disabled title="Playback limited to Mr.FLEN"'}>Play</button>
+        <button class="btn secondary like">${isLiked(t) ? 'Unlike' : 'Like'}</button>
         <button class="btn secondary share" data-url="${t.permalink}">Share</button>
       </div>`;
     const playBtn = li.querySelector('.play');
     playBtn.onclick = () => t.isMrFlen && playFrom(tracks, i);
+    const likeBtn = li.querySelector('.like');
+    likeBtn.onclick = () => {
+      toggleLike(t);
+      likeBtn.textContent = isLiked(t) ? 'Unlike' : 'Like';
+    };
     const shareBtn = li.querySelector('.share');
     shareBtn.onclick = async () => {
       try {
