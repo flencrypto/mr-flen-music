@@ -25,6 +25,44 @@ const els = {
 
 const state = { queue: [], idx: -1, token: null };
 
+// Setup Google Drive backup buttons
+const backupBtn = document.createElement('button');
+backupBtn.id = 'backupBtn';
+backupBtn.className = 'btn';
+backupBtn.textContent = 'Backup to Google Drive';
+backupBtn.style.display = 'none';
+document.body.appendChild(backupBtn);
+
+const restoreBtn = document.createElement('button');
+restoreBtn.id = 'restoreBtn';
+restoreBtn.className = 'btn secondary';
+restoreBtn.textContent = 'Restore Backup';
+document.body.appendChild(restoreBtn);
+
+function loadExternalScript(src) {
+  return new Promise((resolve) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    document.head.appendChild(s);
+  });
+}
+
+async function initDrive() {
+  await Promise.all([
+    loadExternalScript('https://accounts.google.com/gsi/client'),
+    loadExternalScript('drive.js'),
+  ]);
+  if (window.DriveBackup && window.GOOGLE_CLIENT_ID) {
+    window.DriveBackup.init(window.GOOGLE_CLIENT_ID);
+  }
+}
+initDrive();
+
+function offerBackup() {
+  backupBtn.style.display = 'inline-block';
+}
+
 const RECENT_KEY = 'recentQueries';
 let recent = [];
 try {
@@ -117,7 +155,10 @@ function renderList(listEl, tracks){
 }
 
 function saveRecent(){
-  try { localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0,10))); } catch {}
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0,10)));
+    offerBackup();
+  } catch {}
 }
 
 function renderRecent(filter=''){
@@ -216,6 +257,30 @@ els.paletteInput?.addEventListener('keydown', e => {
     hidePalette();
   }
 });
+
+backupBtn.onclick = async () => {
+  if (!window.DriveBackup) return;
+  const data = { localStorage: { ...localStorage } };
+  try {
+    await window.DriveBackup.upload(data);
+    backupBtn.style.display = 'none';
+  } catch (err) {
+    console.error('Backup failed', err);
+  }
+};
+
+restoreBtn.onclick = async () => {
+  if (!window.DriveBackup) return;
+  try {
+    const data = await window.DriveBackup.download();
+    if (data && data.localStorage) {
+      Object.entries(data.localStorage).forEach(([k, v]) => localStorage.setItem(k, v));
+      renderRecent();
+    }
+  } catch (err) {
+    console.error('Restore failed', err);
+  }
+};
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js');
