@@ -2,6 +2,7 @@ const cfg = JSON.parse(document.querySelector('#config').textContent);
 const els = {
   q: document.querySelector('#q'),
   results: document.querySelector('#resultsList'),
+  status: document.querySelector('#status'),
   trending: document.querySelector('#trending'),
   audio: document.querySelector('#audio'),
   npTitle: document.querySelector('#npTitle'),
@@ -9,13 +10,26 @@ const els = {
   npArt: document.querySelector('#npArt'),
   npBadge: document.querySelector('#npBadge'),
   playPause: document.querySelector('#playPauseBtn'),
+  searchBtn: document.querySelector('#searchBtn'),
   bgVideo: document.querySelector('#bg-video'),
+  analytics: {
+    likes: document.querySelector('#likesCount'),
+    reposts: document.querySelector('#repostsCount'),
+    followers: document.querySelector('#followersCount')
+  }
 };
 
 const state = { queue: [], idx: -1, token: null };
 
 const BG_VIDEO_URL = 'https://scontent-lis1-1.cdninstagram.com/o1/v/t2/f2/m86/AQNR8AIMGj0wZWfnc2E-oDy8hqhL4OzFTFkuQIWRUNgevSbye_jDRibDpsEf4u9akLDOKgjBJ9PrtCnjg6Bd-aBRaCsn0B8ZT3bBD2E.mp4?_nc_cat=101&_nc_sid=5e9851&_nc_ht=scontent-lis1-1.cdninstagram.com&_nc_ohc=0pl2MZaJ2DAQ7kNvwGc5inD&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6NzEzNjU5NzcxMDU2ODIxLCJ2aV91c2VjYXNlX2lkIjoxMDA5OSwiZHVyYXRpb25fcyI6MTM5LCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=3952d4ec2590d28a&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC81NzQ1MjBFOEUyMDlEODQ0QzlDRkYwRDRDRERDOTI4OV92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HTkgwbWgwV3RGd0I3ZXNFQUhydERsSWh5NE1pYnFfRUFBQUYVAgLIARIAKAAYABsCiAd1c2Vfb2lsATEScHJvZ3Jlc3NpdmVfcmVjaXBlATEVAAAm6sqn0rvExAIVAigCQzMsF0BheZmZmZmaGBJkYXNoX2Jhc2VsaW5lXzFfdjERAHX-B2XmnQEA&_nc_gid=8YseOpuR_huJ3ix88klWxg&_nc_zt=28&oh=00_AfVvmQiGqR6wrk-x_afi20p5jHLjxVzqJWZLI8oFGI3mrw&oe=68B8C6AA';
 if (els.bgVideo) els.bgVideo.src = BG_VIDEO_URL;
+
+// Populate analytics metrics if provided in config.
+if (cfg.analytics) {
+  els.analytics.likes && (els.analytics.likes.textContent = String(cfg.analytics.likes || 0));
+  els.analytics.reposts && (els.analytics.reposts.textContent = String(cfg.analytics.reposts || 0));
+  els.analytics.followers && (els.analytics.followers.textContent = String(cfg.analytics.followers || 0));
+}
 
 // Gracefully handle missing configuration for Mr.FLEN identifiers.
 function isMrFlenName(name){
@@ -46,14 +60,20 @@ async function soundcloudSearch(q){
   u.searchParams.set('q', q);
   u.searchParams.set('limit','25');
   if (cfg.scClientId) u.searchParams.set('client_id', cfg.scClientId);
-  const r = await fetch(u);
-  const j = await r.json();
-  return (j.collection || j || []).map(t => ({
-    id: String(t.id), platform:'soundcloud',
-    title: t.title, artist: t.user?.username, artwork: (t.artwork_url || '').replace('-large','-t500x500'),
-    durationMs: t.duration, permalink: t.permalink_url,
-    isMrFlen: isMrFlenName(t.user?.username)
-  }));
+  try{
+    const r = await fetch(u);
+    if(!r.ok) throw new Error(`status ${r.status}`);
+    const j = await r.json();
+    return (j.collection || j || []).map(t => ({
+      id: String(t.id), platform:'soundcloud',
+      title: t.title, artist: t.user?.username, artwork: (t.artwork_url || '').replace('-large','-t500x500'),
+      durationMs: t.duration, permalink: t.permalink_url,
+      isMrFlen: isMrFlenName(t.user?.username)
+    }));
+  }catch(err){
+    console.warn('SoundCloud search failed', err);
+    return [];
+  }
 }
 
 function renderList(listEl, tracks){
@@ -64,8 +84,22 @@ function renderList(listEl, tracks){
       <img src="${t.artwork||''}" alt="" width="48" height="48" style="border-radius:8px">
       <div><div class="title">${t.title}</div><div class="artist">${t.artist||''}</div></div>
       <span class="badge">${t.platform === 'audius' ? 'Audius' : 'SC'}</span>
-      <button class="btn" ${t.isMrFlen ? '' : 'disabled title="Playback limited to Mr.FLEN"'}>Play</button>`;
-    li.querySelector('button').onclick = () => t.isMrFlen && playFrom(tracks, i);
+      <div class="track-actions">
+        <button class="btn play" ${t.isMrFlen ? '' : 'disabled title="Playback limited to Mr.FLEN"'}>Play</button>
+        <button class="btn secondary share" data-url="${t.permalink}">Share</button>
+      </div>`;
+    const playBtn = li.querySelector('.play');
+    playBtn.onclick = () => t.isMrFlen && playFrom(tracks, i);
+    const shareBtn = li.querySelector('.share');
+    shareBtn.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(t.permalink);
+        shareBtn.textContent = 'Copied';
+        setTimeout(() => shareBtn.textContent = 'Share', 1000);
+      } catch {
+        window.prompt('Copy track link', t.permalink);
+      }
+    };
     listEl.appendChild(li);
   });
 }
@@ -91,15 +125,27 @@ async function playFrom(arr, idx){
   navigator.mediaSession?.metadata = new MediaMetadata({ title: t.title, artist: t.artist, artwork: [{src:t.artwork,sizes:'512x512',type:'image/jpeg'}] });
 }
 
-document.querySelector('#searchBtn').onclick = async () => {
+async function runSearch(){
   const q = els.q.value.trim();
-  const [a, s] = await Promise.all([
+  if(!q) return;
+  els.searchBtn.disabled = true;
+  els.searchBtn.classList.add('loading');
+  if(els.status) els.status.textContent = 'Searching…';
+  const [aRes, sRes] = await Promise.allSettled([
     audiusSearch(q),
     soundcloudSearch(`${q} ${cfg.mrflens?.soundcloudUsername || 'mr-flen'}`)
   ]);
+  const a = aRes.status === 'fulfilled' ? aRes.value : [];
+  const s = sRes.status === 'fulfilled' ? sRes.value : [];
   const results = [...a, ...s].filter(t => t.isMrFlen);
   renderList(els.results, results);
-};
+  if(els.status) els.status.textContent = results.length ? '' : 'No tracks found.';
+  els.searchBtn.disabled = false;
+  els.searchBtn.classList.remove('loading');
+}
+
+els.searchBtn.onclick = runSearch;
+els.q.addEventListener('keydown', e => { if(e.key === 'Enter') runSearch(); });
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js');

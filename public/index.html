@@ -38,7 +38,8 @@
         <button class="tab" data-tab="playlists">Playlists</button>
         <button class="tab" data-tab="all">All</button>
       </div>
-      <ul id="resultsList" class="list" aria-live="polite"></ul>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <ul id="resultsList" class="list"></ul>
     </section>
 
     <aside class="panel library" aria-label="Library">
@@ -48,6 +49,24 @@
         <button class="tab" data-tab="reposts">Reposts</button>
       </div>
       <ul id="libraryList" class="list"></ul>
+    </aside>
+
+    <aside class="panel analytics" aria-label="Analytics">
+      <h2>Analytics</h2>
+      <ul class="stats">
+        <li><span>Likes</span><span id="likesCount">0</span></li>
+        <li><span>Reposts</span><span id="repostsCount">0</span></li>
+        <li><span>Followers</span><span id="followersCount">0</span></li>
+      </ul>
+    </aside>
+
+    <aside class="panel social" aria-label="Connect">
+      <h2>Connect</h2>
+      <ul class="social-links">
+        <li><a href="https://audius.co/Mr.FLEN" target="_blank" rel="noopener">Audius</a></li>
+        <li><a href="https://soundcloud.com/mr-flen" target="_blank" rel="noopener">SoundCloud</a></li>
+        <li><a href="https://twitter.com/mrflen" target="_blank" rel="noopener">Twitter</a></li>
+      </ul>
     </aside>
   </main>
 
@@ -75,7 +94,8 @@
       "audiusKey": "922e6edcae9856000bf6814a1ee5745bfb57734",
       "scClientId": "YOUR_SOUNDCLOUD_CLIENT_ID",
       "scRedirectUri": "https://your.app/callback",
-      "mrflens": { "audiusHandle": "Mr.FLEN", "soundcloudUsername": "mr-flen" }
+      "mrflens": { "audiusHandle": "Mr.FLEN", "soundcloudUsername": "mr-flen" },
+      "analytics": { "likes": 0, "reposts": 0, "followers": 0 }
     }
   </script>
   <script src="app.js" defer></script>
