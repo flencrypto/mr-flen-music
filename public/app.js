@@ -46,14 +46,20 @@ async function soundcloudSearch(q){
   u.searchParams.set('q', q);
   u.searchParams.set('limit','25');
   if (cfg.scClientId) u.searchParams.set('client_id', cfg.scClientId);
-  const r = await fetch(u);
-  const j = await r.json();
-  return (j.collection || j || []).map(t => ({
-    id: String(t.id), platform:'soundcloud',
-    title: t.title, artist: t.user?.username, artwork: (t.artwork_url || '').replace('-large','-t500x500'),
-    durationMs: t.duration, permalink: t.permalink_url,
-    isMrFlen: isMrFlenName(t.user?.username)
-  }));
+  try{
+    const r = await fetch(u);
+    if(!r.ok) throw new Error(`status ${r.status}`);
+    const j = await r.json();
+    return (j.collection || j || []).map(t => ({
+      id: String(t.id), platform:'soundcloud',
+      title: t.title, artist: t.user?.username, artwork: (t.artwork_url || '').replace('-large','-t500x500'),
+      durationMs: t.duration, permalink: t.permalink_url,
+      isMrFlen: isMrFlenName(t.user?.username)
+    }));
+  }catch(err){
+    console.warn('SoundCloud search failed', err);
+    return [];
+  }
 }
 
 function renderList(listEl, tracks){
@@ -93,10 +99,12 @@ async function playFrom(arr, idx){
 
 document.querySelector('#searchBtn').onclick = async () => {
   const q = els.q.value.trim();
-  const [a, s] = await Promise.all([
+  const [aRes, sRes] = await Promise.allSettled([
     audiusSearch(q),
     soundcloudSearch(`${q} ${cfg.mrflens?.soundcloudUsername || 'mr-flen'}`)
   ]);
+  const a = aRes.status === 'fulfilled' ? aRes.value : [];
+  const s = sRes.status === 'fulfilled' ? sRes.value : [];
   const results = [...a, ...s].filter(t => t.isMrFlen);
   renderList(els.results, results);
 };
