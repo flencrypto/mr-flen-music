@@ -4,7 +4,7 @@
   "description": "A static music browser for Mr.FLEN that unifies Audius and SoundCloud tracks.",
   "private": true,
   "scripts": {
-    "test": "node --test"
+    "test": "jest"
   },
   "license": "MIT",
   "devDependencies": {
