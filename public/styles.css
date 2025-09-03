@@ -20,12 +20,17 @@ body::before{
 .brand{font-weight:700; letter-spacing:.5px;}
 .search input{width:min(56vw,520px); padding:10px 14px; border-radius:12px; border:1px solid #223; background:#101624; color:var(--text);}
 .btn{background:#122033; color:var(--text); border:1px solid #24344a; padding:10px 14px; border-radius:12px; cursor:pointer;}
+.btn:disabled{opacity:.5; cursor:not-allowed;}
+.btn.loading{position:relative; pointer-events:none;}
+.btn.loading::after{content:""; position:absolute; right:12px; top:50%; width:16px; height:16px; margin-top:-8px; border:2px solid currentColor; border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite;}
+.btn.secondary{background:transparent; border-color:var(--brand); color:var(--brand);}
 .panel{background:var(--panel); backdrop-filter: blur(var(--blur)); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; border:1px solid rgba(255,255,255,.05);}
 .grid{display:grid; gap:16px; grid-template-columns: 1.5fr 2fr 1.2fr; padding:16px; align-items:start;}
 .list{list-style:none; margin:0; padding:0;}
 .list li{display:flex; align-items:center; gap:12px; padding:10px; border-radius:12px;}
 .list li:hover{background:rgba(255,255,255,.04);}
 .badge{margin-left:auto; font-size:12px; opacity:.8}
+.track-actions{display:flex; gap:8px;}
 .player{position:sticky; bottom:0; display:flex; justify-content:space-between; gap:16px;
   background:rgba(10,14,20,.92); padding:10px 14px; border-top:1px solid #223; }
 .np-meta{display:flex; gap:12px; align-items:center;}
@@ -37,8 +42,17 @@ body::before{
 .stats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;}
 .stats li{display:flex;justify-content:space-between;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04);}
 .stats li span:last-child{font-weight:600;}
+.social{grid-column:3;}
+.social-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;}
+.social-links a{display:block;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04);color:var(--text);text-decoration:none;}
+.social-links a:hover{background:rgba(255,255,255,.06);}
+.status{margin-top:8px;min-height:1.5em;color:var(--muted);font-size:14px;}
+*:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+@keyframes spin{to{transform:rotate(360deg);}}
 @media (max-width: 960px){
   .grid{grid-template-columns:1fr; padding-bottom:88px}
   .library{order:3}
   .analytics{order:4}
+  .social{order:5}
+
 }
