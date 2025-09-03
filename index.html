@@ -51,7 +51,7 @@
         gap: 16px;
       }
       input#search {
-        width: 100%;
+        flex: 1;
         padding: 12px 14px;
         border-radius: 12px;
         border: 1px solid #ffffff22;
@@ -193,11 +193,19 @@
         <button id="backup-btn" class="pill" style="cursor:pointer;background:#0000;display:none;">Backup</button>
         <button id="restore-btn" class="pill" style="cursor:pointer;background:#0000;">Restore</button>
       </div>
-      <input
-        id="search"
-        placeholder="Search tracks (Ctrl/⌘-K)"
-        autocomplete="off"
-      />
+      <div class="row" style="align-items: center; gap: 8px;">
+        <input
+          id="search"
+          placeholder="Search tracks (Ctrl/⌘-K)"
+          autocomplete="off"
+        />
+        <label
+          for="all-artists"
+          style="display: flex; align-items: center; gap: 4px; font-size: 14px;"
+        >
+          <input type="checkbox" id="all-artists" /> Include all artists
+        </label>
+      </div>
       <div id="genres" class="row"></div>
     </header>
 
@@ -279,12 +287,14 @@
         return json.data || [];
       }
 
-      async function searchSoundCloud(query) {
+      async function searchSoundCloud(query, allArtists = false) {
         const url = `https://api.soundcloud.com/tracks?client_id=${SOUNDCLOUD_CLIENT_ID}&q=${encodeURIComponent(query)}&limit=20`;
         const res = await fetch(url);
         if (!res.ok) throw new Error("sc");
         const json = await res.json();
-        return json.filter((t) => t.user && t.user.username === MRFLEN_SC_USERNAME);
+        return allArtists
+          ? json
+          : json.filter((t) => t.user && t.user.username === MRFLEN_SC_USERNAME);
       }
 
       async function streamUrl(trackId) {
@@ -422,6 +432,7 @@
       const results = document.querySelector("#results");
       let audioPlayer = document.querySelector("#player");
       const search = document.querySelector("#search");
+      const allArtistsToggle = document.querySelector("#all-artists");
       const login = document.querySelector("#login");
       const loginModal = document.querySelector("#login-modal");
       const fbLoginBtn = document.querySelector("#fb-login-btn");
@@ -434,6 +445,16 @@
       const shuffleBtn = document.querySelector("#shuffle");
       const queueLabel = document.querySelector("#queueLabel");
       const genresEl = document.querySelector("#genres");
+      allArtistsToggle.checked =
+        localStorage.getItem("searchAllArtists") === "true";
+      allArtistsToggle.addEventListener("change", () => {
+        localStorage.setItem(
+          "searchAllArtists",
+          allArtistsToggle.checked ? "true" : "false"
+        );
+        const q = search.value.trim();
+        if (q) search.dispatchEvent(new Event("input"));
+      });
       const { handleAuthSuccess } = window;
       const GENRES = ["All", "UKG", "Grime", "House", "DNB"];
       let currentGenre = null;
@@ -609,29 +630,39 @@
             '<div class="glass" style="padding:16px;">Searching…</div>';
           try {
             let scError = false;
+            const allArtists = allArtistsToggle.checked;
             const [a, s] = await Promise.all([
               searchTracks(q),
-              searchSoundCloud(q).catch(() => {
+              searchSoundCloud(q, allArtists).catch(() => {
                 scError = true;
                 return [];
               }),
             ]);
+            const audiusTracks = allArtists
+              ? a
+              : a.filter((t) => t.user && t.user.handle === MRFLEN_AUDIUS_HANDLE);
             const tracks = [
-              ...a
-                .filter((t) => t.user && t.user.handle === MRFLEN_AUDIUS_HANDLE)
-                .map(normalizeAudiusTrack),
+              ...audiusTracks.map(normalizeAudiusTrack),
               ...s.map(normalizeSoundCloudTrack),
             ];
+            const scopeText = allArtists
+              ? "Showing all artists"
+              : "Showing Mr.FLEN only";
             if (!tracks.length) {
-              results.innerHTML =
-                '<div class="glass" style="padding:16px;">No Mr.FLEN tracks found.</div>';
+              let html =
+                '<div class="glass" style="padding:16px;">No tracks found.</div>';
               if (scError)
-                results.innerHTML +=
+                html +=
                   '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ SoundCloud results unavailable.</div>';
+              html +=
+                `<div class="glass" style="padding:16px;margin-top:8px;">${scopeText}</div>`;
+              results.innerHTML = html;
               return;
             }
             tracks.sort((a, b) => a.title.localeCompare(b.title));
-            let html = renderTracksList(tracks, true);
+            let html =
+              `<div class="glass" style="padding:16px;margin-bottom:8px;">${scopeText}</div>` +
+              renderTracksList(tracks, true);
             if (scError)
               html =
                 '<div class="glass" style="padding:16px;">⚠️ SoundCloud results unavailable.</div>' +
