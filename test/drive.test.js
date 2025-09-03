@@ -1,6 +1,4 @@
 const { uploadWithToken, downloadWithToken, merge } = require('../public/drive.js');
-const { test } = require('node:test');
-const assert = require('assert');
 
 test('uploadWithToken creates file when none exists', async () => {
   const calls = [];
@@ -14,8 +12,8 @@ test('uploadWithToken creates file when none exists', async () => {
     }
   };
   await uploadWithToken('token', { a: 1 }, fetchMock);
-  assert.strictEqual(calls[0].url.includes('spaces=appDataFolder'), true);
-  assert.strictEqual(calls[1].opts.method, 'POST');
+  expect(calls[0].url.includes('spaces=appDataFolder')).toBe(true);
+  expect(calls[1].opts.method).toBe('POST');
 });
 
 test('uploadWithToken updates existing file', async () => {
@@ -28,7 +26,7 @@ test('uploadWithToken updates existing file', async () => {
     return { json: async () => ({ id: '1' }) };
   };
   await uploadWithToken('token', { a: 1 }, fetchMock);
-  assert.strictEqual(calls[1].opts.method, 'PATCH');
+  expect(calls[1].opts.method).toBe('PATCH');
 });
 
 test('downloadWithToken returns parsed data', async () => {
@@ -41,11 +39,11 @@ test('downloadWithToken returns parsed data', async () => {
     }
   };
   const data = await downloadWithToken('token', fetchMock);
-  assert.deepStrictEqual(data, { a: 1 });
+  expect(data).toEqual({ a: 1 });
 });
 
 test('merge prefers remote values', () => {
   const local = { a: 1, b: 2 };
   const remote = { a: 3, c: 4 };
-  assert.deepStrictEqual(merge(local, remote), { a: 3, b: 2, c: 4 });
+  expect(merge(local, remote)).toEqual({ a: 3, b: 2, c: 4 });
 });

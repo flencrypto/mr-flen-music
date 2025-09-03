@@ -198,6 +198,10 @@
         placeholder="Search tracks (Ctrl/⌘-K)"
         autocomplete="off"
       />
+      <div class="row" style="font-size:14px;gap:4px;align-items:center">
+        <input type="checkbox" id="all-artists-toggle" />
+        <label for="all-artists-toggle">Include all artists</label>
+      </div>
       <div id="genres" class="row"></div>
     </header>
 
@@ -284,7 +288,7 @@
         const res = await fetch(url);
         if (!res.ok) throw new Error("sc");
         const json = await res.json();
-        return json.filter((t) => t.user && t.user.username === MRFLEN_SC_USERNAME);
+        return json;
       }
 
       async function streamUrl(trackId) {
@@ -364,9 +368,15 @@
 
       const LIKED_KEY = 'likedTracks';
       const PLAYLIST_KEY = 'customPlaylists';
+      const SEARCH_ALL_KEY = 'searchAllArtists';
 
       let likedTracks = [];
       let customPlaylists = [];
+      let searchAllArtists = false;
+      try {
+        searchAllArtists =
+          localStorage.getItem(SEARCH_ALL_KEY) === 'true';
+      } catch {}
 
       function loadPreferences() {
         try {
@@ -422,6 +432,7 @@
       const results = document.querySelector("#results");
       let audioPlayer = document.querySelector("#player");
       const search = document.querySelector("#search");
+      const allArtistsToggle = document.querySelector("#all-artists-toggle");
       const login = document.querySelector("#login");
       const loginModal = document.querySelector("#login-modal");
       const fbLoginBtn = document.querySelector("#fb-login-btn");
@@ -434,6 +445,16 @@
       const shuffleBtn = document.querySelector("#shuffle");
       const queueLabel = document.querySelector("#queueLabel");
       const genresEl = document.querySelector("#genres");
+
+      allArtistsToggle.checked = searchAllArtists;
+      allArtistsToggle.addEventListener("change", () => {
+        searchAllArtists = allArtistsToggle.checked;
+        try {
+          localStorage.setItem(SEARCH_ALL_KEY, searchAllArtists);
+        } catch {}
+        if (search.value.trim()) search.dispatchEvent(new Event("input"));
+      });
+
       const { handleAuthSuccess } = window;
       const GENRES = ["All", "UKG", "Grime", "House", "DNB"];
       let currentGenre = null;
@@ -616,22 +637,35 @@
                 return [];
               }),
             ]);
-            const tracks = [
-              ...a
-                .filter((t) => t.user && t.user.handle === MRFLEN_AUDIUS_HANDLE)
-                .map(normalizeAudiusTrack),
-              ...s.map(normalizeSoundCloudTrack),
-            ];
+            let audiusTracks = a.map(normalizeAudiusTrack);
+            let scTracks = s.map(normalizeSoundCloudTrack);
+            if (!searchAllArtists) {
+              audiusTracks = audiusTracks.filter(
+                (t) => t.user && t.user.handle === MRFLEN_AUDIUS_HANDLE,
+              );
+              scTracks = scTracks.filter(
+                (t) => t.user && t.user.handle === MRFLEN_SC_USERNAME,
+              );
+            }
+            const tracks = [...audiusTracks, ...scTracks];
+            const scopeMessage = searchAllArtists
+              ? 'Showing all artists'
+              : 'Showing Mr.FLEN only';
             if (!tracks.length) {
               results.innerHTML =
-                '<div class="glass" style="padding:16px;">No Mr.FLEN tracks found.</div>';
+                `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
+                `<div class="glass" style="padding:16px;margin-top:8px;">No ${
+                  searchAllArtists ? '' : 'Mr.FLEN '
+                }tracks found.</div>`;
               if (scError)
                 results.innerHTML +=
                   '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ SoundCloud results unavailable.</div>';
               return;
             }
             tracks.sort((a, b) => a.title.localeCompare(b.title));
-            let html = renderTracksList(tracks, true);
+            let html =
+              `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
+              renderTracksList(tracks, true);
             if (scError)
               html =
                 '<div class="glass" style="padding:16px;">⚠️ SoundCloud results unavailable.</div>' +
