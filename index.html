@@ -367,6 +367,7 @@
           artwork:
             (t.artwork && (t.artwork["150x150"] || t.artwork["480x480"])) || "",
           user: { handle: t.user && t.user.handle ? t.user.handle : "" },
+          plays: t.play_count || 0,
         };
       }
 
@@ -378,6 +379,7 @@
           artwork: t.artwork_url || "",
           permalink_url: t.permalink_url,
           user: { handle: t.user && t.user.username ? t.user.username : "" },
+          plays: t.playback_count || 0,
         };
       }
 
@@ -678,67 +680,71 @@
         }
       }
 
-      let debounceTimer = null;
-      search.addEventListener("input", async (e) => {
-        const q = e.target.value.trim();
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(async () => {
-          if (!q) {
-            loadHome(currentGenre);
+      async function performSearch(q) {
+        if (!q) {
+          loadHome(currentGenre);
+          return;
+        }
+        results.innerHTML =
+          '<div class="glass" style="padding:16px;">Searching…</div>';
+        try {
+          let scError = false;
+          const [a, s] = await Promise.all([
+            searchTracks(q),
+            searchSoundCloud(q).catch(() => {
+              scError = true;
+              return [];
+            }),
+          ]);
+          let audiusTracks = a.map(normalizeAudiusTrack);
+          let scTracks = s.map(normalizeSoundCloudTrack);
+          if (!searchAllArtists) {
+            audiusTracks = audiusTracks.filter(
+              (t) => t.user && t.user.handle === MRFLEN_AUDIUS_HANDLE,
+            );
+            scTracks = scTracks.filter(
+              (t) => t.user && t.user.handle === MRFLEN_SC_USERNAME,
+            );
+          }
+          const tracks = [...audiusTracks, ...scTracks];
+          const scopeMessage = searchAllArtists
+            ? 'Showing all artists'
+            : 'Showing Mr.FLEN only';
+          if (!tracks.length) {
+            results.innerHTML =
+              `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
+              `<div class="glass" style="padding:16px;margin-top:8px;">No ${
+                searchAllArtists ? '' : 'Mr.FLEN '
+              }tracks found.</div>`;
+            if (scError)
+              results.innerHTML +=
+                '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ SoundCloud results unavailable.</div>';
             return;
           }
+          tracks.sort(
+            (a, b) => b.plays - a.plays || a.title.localeCompare(b.title),
+          );
+          let html =
+            `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
+            renderTracksList(tracks, true);
+          if (scError)
+            html =
+              '<div class="glass" style="padding:16px;">⚠️ SoundCloud results unavailable.</div>' +
+              html;
+          results.innerHTML = html;
+          attachTrackEvents();
+        } catch (err) {
+          console.error(err);
           results.innerHTML =
-            '<div class="glass" style="padding:16px;">Searching…</div>';
-          try {
-            let scError = false;
-            const [a, s] = await Promise.all([
-              searchTracks(q),
-              searchSoundCloud(q).catch(() => {
-                scError = true;
-                return [];
-              }),
-            ]);
-            let audiusTracks = a.map(normalizeAudiusTrack);
-            let scTracks = s.map(normalizeSoundCloudTrack);
-            if (!searchAllArtists) {
-              audiusTracks = audiusTracks.filter(
-                (t) => t.user && t.user.handle === MRFLEN_AUDIUS_HANDLE,
-              );
-              scTracks = scTracks.filter(
-                (t) => t.user && t.user.handle === MRFLEN_SC_USERNAME,
-              );
-            }
-            const tracks = [...audiusTracks, ...scTracks];
-            const scopeMessage = searchAllArtists
-              ? 'Showing all artists'
-              : 'Showing Mr.FLEN only';
-            if (!tracks.length) {
-              results.innerHTML =
-                `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
-                `<div class="glass" style="padding:16px;margin-top:8px;">No ${
-                  searchAllArtists ? '' : 'Mr.FLEN '
-                }tracks found.</div>`;
-              if (scError)
-                results.innerHTML +=
-                  '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ SoundCloud results unavailable.</div>';
-              return;
-            }
-            tracks.sort((a, b) => a.title.localeCompare(b.title));
-            let html =
-              `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
-              renderTracksList(tracks, true);
-            if (scError)
-              html =
-                '<div class="glass" style="padding:16px;">⚠️ SoundCloud results unavailable.</div>' +
-                html;
-            results.innerHTML = html;
-            attachTrackEvents();
-          } catch (err) {
-            console.error(err);
-            results.innerHTML =
-              '<div class="glass" style="padding:16px;">Error contacting APIs.</div>';
-          }
-        }, 250);
+            '<div class="glass" style="padding:16px;">Error contacting APIs.</div>';
+        }
+      }
+
+      let debounceTimer = null;
+      search.addEventListener("input", (e) => {
+        const q = e.target.value.trim();
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => performSearch(q), 250);
       });
 
       nextBtn.onclick = () => {
@@ -808,7 +814,7 @@
         window.location.href = url;
       };
 
-      loadHome(currentGenre);
+      performSearch(MRFLEN_AUDIUS_HANDLE);
 
       // ⌘/Ctrl-K to focus
       document.addEventListener("keydown", (e) => {
