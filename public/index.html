@@ -36,7 +36,7 @@ body::before{
 .palette{position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:1000;}
 .palette.hidden{display:none;}
 .palette-box{background:var(--panel); backdrop-filter:blur(var(--blur)); padding:16px; border-radius:var(--radius); box-shadow:var(--shadow); min-width:280px; max-width:90%;}
-.palette-box input{width:100%; padding:10px; border-radius:8px; border:1px solid #24344a; background:#101624; color:var(--text);}
+.palette-box input,.palette-box select{width:100%; padding:10px; border-radius:8px; border:1px solid #24344a; background:#101624; color:var(--text);}
 .palette-box ul{list-style:none; margin:8px 0 0; padding:0; max-height:160px; overflow:auto;}
 .palette-box li{padding:6px 8px; border-radius:6px; cursor:pointer;}
 .palette-box li:hover{background:rgba(255,255,255,.08);}
@@ -95,6 +95,23 @@ body::before{
     <div class="palette-box">
       <input id="paletteInput" type="text" placeholder="Type a search..." aria-label="Command palette input" />
       <ul id="paletteList"></ul>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="palette hidden" role="dialog" aria-modal="true">
+    <div class="palette-box">
+      <label style="display:flex;align-items:center;gap:8px;">
+        <input id="mrflensOnly" type="checkbox" checked />
+        Show only Mr.FLEN
+      </label>
+      <label style="display:block;margin-top:12px;">
+        Sort by
+        <select id="sortSelect">
+          <option value="title">Title</option>
+          <option value="duration">Duration</option>
+        </select>
+      </label>
+      <button id="closeSettings" class="btn" style="margin-top:16px;">Close</button>
     </div>
   </div>
 
@@ -173,6 +190,7 @@ body::before{
       "analytics": { "likes": 0, "reposts": 0, "followers": 0 }
     }
   </script>
+  <script src="sort-tracks.js"></script>
   <script src="app.js" defer></script>
 </body>
 </html>
