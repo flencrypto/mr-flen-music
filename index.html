@@ -133,6 +133,15 @@
         color: #05060a;
         border-color: var(--color-primary);
       }
+      #progressContainer {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      #progressBar {
+        flex: 1;
+      }
       .carousel {
         display: flex;
         gap: 16px;
@@ -246,8 +255,14 @@
       </div>
       <div id="playerContainer">
         <audio id="player" controls preload="none" style="width: 100%"></audio>
+        <div id="progressContainer" class="row" style="display:none">
+          <span id="currentTime">0:00</span>
+          <input type="range" id="progressBar" min="0" value="0" />
+          <span id="duration">0:00</span>
+        </div>
       </div>
     </footer>
+    <script src="format-time.js"></script>
     <script src="public/drive.js"></script>
     <script type="module">
       /**
@@ -445,6 +460,43 @@
       const shuffleBtn = document.querySelector("#shuffle");
       const queueLabel = document.querySelector("#queueLabel");
       const genresEl = document.querySelector("#genres");
+      let progressContainer;
+      let progressBar;
+      let currentTimeEl;
+      let durationEl;
+
+      function cacheProgressEls() {
+        progressContainer = document.getElementById("progressContainer");
+        progressBar = document.getElementById("progressBar");
+        currentTimeEl = document.getElementById("currentTime");
+        durationEl = document.getElementById("duration");
+      }
+
+      cacheProgressEls();
+
+      function attachPlayer(player) {
+        if (!player) {
+          if (progressContainer) progressContainer.style.display = "none";
+          return;
+        }
+        progressContainer.style.display = "flex";
+        progressBar.value = 0;
+        currentTimeEl.textContent = "0:00";
+        durationEl.textContent = "0:00";
+        player.addEventListener("timeupdate", () => {
+          progressBar.value = player.currentTime;
+          currentTimeEl.textContent = formatTime(player.currentTime);
+        });
+        player.addEventListener("loadedmetadata", () => {
+          progressBar.max = player.duration;
+          durationEl.textContent = formatTime(player.duration);
+        });
+        progressBar.oninput = (e) => {
+          player.currentTime = e.target.value;
+        };
+      }
+
+      attachPlayer(null);
 
       allArtistsToggle.checked = searchAllArtists;
       allArtistsToggle.addEventListener("change", () => {
@@ -496,11 +548,20 @@
           );
           const { html } = await res.json();
           container.innerHTML = html;
+          cacheProgressEls();
           audioPlayer = null;
+          attachPlayer(null);
         } else {
-          container.innerHTML =
-            '<audio id="player" controls preload="none" style="width:100%"></audio>';
+          container.innerHTML = `
+            <audio id="player" controls preload="none" style="width:100%"></audio>
+            <div id="progressContainer" class="row" style="display:none">
+              <span id="currentTime">0:00</span>
+              <input type="range" id="progressBar" min="0" value="0" />
+              <span id="duration">0:00</span>
+            </div>`;
+          cacheProgressEls();
           audioPlayer = document.querySelector("#player");
+          attachPlayer(audioPlayer);
           const url = await streamUrl(track.id);
           audioPlayer.src = url;
           await audioPlayer.play();
@@ -754,6 +815,9 @@
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
           e.preventDefault();
           search.focus();
+        } else if (e.code === "Space" && e.target === document.body && audioPlayer) {
+          e.preventDefault();
+          audioPlayer.paused ? audioPlayer.play() : audioPlayer.pause();
         }
       });
       shuffleBtn.onclick = () => {
