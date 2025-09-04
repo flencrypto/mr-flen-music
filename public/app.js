@@ -408,7 +408,6 @@ if (defaultQuery) {
   els.q.value = defaultQuery;
   runSearch();
 }
-
 els.openPalette?.addEventListener('click', showPalette);
 document.addEventListener('keydown', e => {
   if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){
