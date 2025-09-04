@@ -16,6 +16,11 @@ const els = {
   palette: document.querySelector('#palette'),
   paletteInput: document.querySelector('#paletteInput'),
   paletteList: document.querySelector('#paletteList'),
+  settingsBtn: document.querySelector('#settingsBtn'),
+  settingsModal: document.querySelector('#settingsModal'),
+  mrflensOnly: document.querySelector('#mrflensOnly'),
+  sortSelect: document.querySelector('#sortSelect'),
+  closeSettings: document.querySelector('#closeSettings'),
   analytics: {
     likes: document.querySelector('#likesCount'),
     reposts: document.querySelector('#repostsCount'),
@@ -25,6 +30,8 @@ const els = {
 
 const LIKED_KEY = 'likedTracks';
 const PLAYLIST_KEY = 'customPlaylists';
+const ONLY_MRFLEN_KEY = 'onlyMrFlen';
+const SORT_BY_KEY = 'sortBy';
 
 function loadPreferences() {
   try {
@@ -75,11 +82,18 @@ const state = {
   idx: -1,
   token: null,
   likedTracks: [],
-  customPlaylists: []
+  customPlaylists: [],
+  onlyMrFlen: true,
+  sortBy: 'title'
 };
 
 ({ liked: state.likedTracks, playlists: state.customPlaylists } =
   loadPreferences());
+
+try {
+  state.onlyMrFlen = localStorage.getItem(ONLY_MRFLEN_KEY) !== 'false';
+  state.sortBy = localStorage.getItem(SORT_BY_KEY) || 'title';
+} catch {}
 
 // Setup Google Drive backup buttons
 const backupBtn = document.createElement('button');
@@ -294,13 +308,18 @@ async function runSearch(){
   els.searchBtn.classList.add('loading');
   if(els.status) els.status.textContent = 'Searching…';
 
+  const scQuery = state.onlyMrFlen
+    ? `${q} ${cfg.mrflens?.soundcloudUsername || 'mr-flen'}`
+    : q;
   const [aRes, sRes] = await Promise.allSettled([
     audiusSearch(q),
-    soundcloudSearch(`${q} ${cfg.mrflens?.soundcloudUsername || 'mr-flen'}`)
+    soundcloudSearch(scQuery)
   ]);
   const a = aRes.status === 'fulfilled' ? aRes.value : [];
   const s = sRes.status === 'fulfilled' ? sRes.value : [];
-  const results = [...a, ...s].filter(t => t.isMrFlen);
+  let results = [...a, ...s];
+  if(state.onlyMrFlen) results = results.filter(t => t.isMrFlen);
+  results = sortTracks(results, state.sortBy);
   renderList(els.results, results);
   if(els.status) els.status.textContent = results.length ? '' : 'No tracks found.';
   els.searchBtn.disabled = false;
@@ -309,6 +328,25 @@ async function runSearch(){
 
 els.searchBtn.onclick = runSearch;
 els.q.addEventListener('keydown', e => { if(e.key === 'Enter') runSearch(); });
+
+els.settingsBtn?.addEventListener('click', () => {
+  els.settingsModal.classList.remove('hidden');
+});
+els.closeSettings?.addEventListener('click', () => {
+  els.settingsModal.classList.add('hidden');
+});
+els.mrflensOnly.checked = state.onlyMrFlen;
+els.sortSelect.value = state.sortBy;
+els.mrflensOnly?.addEventListener('change', () => {
+  state.onlyMrFlen = els.mrflensOnly.checked;
+  try { localStorage.setItem(ONLY_MRFLEN_KEY, String(state.onlyMrFlen)); } catch {}
+  if(els.q.value.trim()) runSearch();
+});
+els.sortSelect?.addEventListener('change', () => {
+  state.sortBy = els.sortSelect.value;
+  try { localStorage.setItem(SORT_BY_KEY, state.sortBy); } catch {}
+  if(els.q.value.trim()) runSearch();
+});
 
 els.openPalette?.addEventListener('click', showPalette);
 document.addEventListener('keydown', e => {
