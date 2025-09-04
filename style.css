@@ -1,0 +1,111 @@
+/*
+  Custom theme for Mr.FLENs Music Finder.
+
+  This stylesheet embraces a dark, glass‑morphic aesthetic with neon accents inspired
+  by our design brief. Colours and spacing are exposed as CSS variables so the
+  theme can be easily tweaked without restructuring the markup. Hover states
+  include smooth transitions for a polished feel.
+*/
+:root {
+  /* primary highlight used for buttons and interactive elements */
+  --primary-neon: #5CF3FF;
+  /* secondary accent used for subtle highlights */
+  --secondary-accent: #9B5CFF;
+  /* base background colour */
+  --background: #05060A;
+  /* semi‑transparent glass panels */
+  --glass: rgba(255, 255, 255, 0.06);
+  /* typography colours */
+  --text-primary: #EAF4FF;
+  --text-muted: #8A96B3;
+}
+
+/* overall page backdrop */
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, var(--secondary-accent) 22%, transparent 60%),
+    var(--background);
+  color: var(--text-primary);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+header, footer, main {
+  max-width: 1100px;
+  margin: auto;
+}
+
+.glass {
+  backdrop-filter: saturate(1.4) blur(12px);
+  background: var(--glass);
+  border: 1px solid #ffffff18;
+  border-radius: 16px;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+/* search input styling */
+input#search {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #ffffff22;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--text-primary);
+  outline: none;
+  transition: box-shadow 0.2s;
+}
+input#search:focus {
+  box-shadow: 0 0 0 2px var(--primary-neon);
+}
+
+/* card layout for each track */
+.track-card {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 12px;
+  padding: 12px;
+  align-items: center;
+  transition: transform 0.2s;
+}
+.track-card:hover {
+  transform: translateY(-2px);
+}
+.track-card img {
+  border-radius: 10px;
+}
+
+/* play button styling */
+.play {
+  border: 1px solid var(--primary-neon);
+  color: var(--primary-neon);
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.play:hover {
+  background: var(--primary-neon);
+  color: var(--background);
+}
+
+/* optional pill tag styling */
+.pill {
+  padding: 2px 8px;
+  border: 1px solid #ffffff22;
+  border-radius: 999px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* row layout for filter chips or meta */
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
