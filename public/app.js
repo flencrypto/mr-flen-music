@@ -11,11 +11,18 @@ const els = {
   npBadge: document.querySelector('#npBadge'),
   playPause: document.querySelector('#playPauseBtn'),
   searchBtn: document.querySelector('#searchBtn'),
+  connectSC: document.querySelector('#connectSC'),
+  libraryBtn: document.querySelector('#libraryBtn'),
   bgVideo: document.querySelector('#bg-video'),
   openPalette: document.querySelector('#openPalette'),
   palette: document.querySelector('#palette'),
   paletteInput: document.querySelector('#paletteInput'),
   paletteList: document.querySelector('#paletteList'),
+  settingsBtn: document.querySelector('#settingsBtn'),
+  settingsModal: document.querySelector('#settingsModal'),
+  mrflensOnly: document.querySelector('#mrflensOnly'),
+  sortSelect: document.querySelector('#sortSelect'),
+  closeSettings: document.querySelector('#closeSettings'),
   analytics: {
     likes: document.querySelector('#likesCount'),
     reposts: document.querySelector('#repostsCount'),
@@ -25,6 +32,8 @@ const els = {
 
 const LIKED_KEY = 'likedTracks';
 const PLAYLIST_KEY = 'customPlaylists';
+const ONLY_MRFLEN_KEY = 'onlyMrFlen';
+const SORT_BY_KEY = 'sortBy';
 
 function loadPreferences() {
   try {
@@ -75,11 +84,18 @@ const state = {
   idx: -1,
   token: null,
   likedTracks: [],
-  customPlaylists: []
+  customPlaylists: [],
+  onlyMrFlen: true,
+  sortBy: 'title'
 };
 
 ({ liked: state.likedTracks, playlists: state.customPlaylists } =
   loadPreferences());
+
+try {
+  state.onlyMrFlen = localStorage.getItem(ONLY_MRFLEN_KEY) !== 'false';
+  state.sortBy = localStorage.getItem(SORT_BY_KEY) || 'title';
+} catch {}
 
 // Setup Google Drive backup buttons
 const backupBtn = document.createElement('button');
@@ -191,13 +207,45 @@ async function soundcloudSearch(q){
   }
 }
 
+async function loadTrending(){
+  if(!els.trending) return;
+  try {
+    const u = new URL('https://discovery.audius.co/v1/tracks/trending');
+    u.searchParams.set('limit', '8');
+    u.searchParams.set('app_name', 'MrFLEN');
+    const r = await fetch(u, { headers: { Accept: 'application/json' } });
+    const j = await r.json();
+    const tracks = (j.data || []).map(t => ({
+      id: t.id, platform:'audius',
+      title: t.title, artist: t.user?.name, artwork: t.artwork?.['150x150'] || t.artwork?.['480x480'],
+      durationMs: t.duration * 1000, permalink: t.permalink,
+      streamUrl: `https://discovery.audius.co/v1/tracks/${t.id}/stream?app_name=MrFLEN`,
+      isMrFlen: isMrFlenAudius(t.user?.handle)
+    }));
+    els.trending.innerHTML = '';
+    tracks.forEach((t,i) => {
+      const img = document.createElement('img');
+      img.src = normalizeTrack(t).artwork;
+      img.alt = t.title;
+      img.tabIndex = 0;
+      img.addEventListener('click', () => playFrom(tracks, i));
+      img.addEventListener('keydown', e => { if(e.key === 'Enter') playFrom(tracks, i); });
+      els.trending.appendChild(img);
+    });
+  } catch(err) {
+    console.warn('Trending fetch failed', err);
+  }
+}
+loadTrending();
+
 function renderList(listEl, tracks){
   listEl.innerHTML = '';
-  tracks.forEach((t,i) => {
+  tracks.map(normalizeTrack).forEach((t,i) => {
+    const duration = t.durationMs ? formatTime(t.durationMs / 1000) : '--:--';
     const li = document.createElement('li');
     li.innerHTML = `
-      <img src="${t.artwork||''}" alt="" width="48" height="48" style="border-radius:8px">
-      <div><div class="title">${t.title}</div><div class="artist">${t.artist||''}</div></div>
+      <img src="${t.artwork}" alt="Cover art for ${t.title}" width="48" height="48" style="border-radius:8px">
+      <div><div class="title">${t.title}</div><div class="artist">${t.artist}</div><div class="muted">${duration}</div></div>
       <span class="badge">${t.platform === 'audius' ? 'Audius' : 'SC'}</span>
       <div class="track-actions">
         <button class="btn play" ${t.isMrFlen ? '' : 'disabled title="Playback limited to Mr.FLEN"'}>Play</button>
@@ -294,15 +342,25 @@ async function runSearch(){
   els.searchBtn.classList.add('loading');
   if(els.status) els.status.textContent = 'Searching…';
 
+  const scQuery = state.onlyMrFlen
+    ? `${q} ${cfg.mrflens?.soundcloudUsername || 'mr-flen'}`
+    : q;
   const [aRes, sRes] = await Promise.allSettled([
     audiusSearch(q),
-    soundcloudSearch(`${q} ${cfg.mrflens?.soundcloudUsername || 'mr-flen'}`)
+    soundcloudSearch(scQuery)
   ]);
-  const a = aRes.status === 'fulfilled' ? aRes.value : [];
-  const s = sRes.status === 'fulfilled' ? sRes.value : [];
-  const results = [...a, ...s].filter(t => t.isMrFlen);
+  const aFailed = aRes.status === 'rejected';
+  const sFailed = sRes.status === 'rejected';
+  const a = aFailed ? [] : aRes.value;
+  const s = sFailed ? [] : sRes.value;
+  let results = [...a, ...s];
+  if(state.onlyMrFlen) results = results.filter(t => t.isMrFlen);
+  results = sortTracks(results, state.sortBy);
   renderList(els.results, results);
-  if(els.status) els.status.textContent = results.length ? '' : 'No tracks found.';
+  if(els.status){
+    if(aFailed && sFailed) els.status.textContent = 'Search failed. Please check your connection.';
+    else els.status.textContent = results.length ? '' : 'No tracks found.';
+  }
   els.searchBtn.disabled = false;
   els.searchBtn.classList.remove('loading');
 }
@@ -310,12 +368,54 @@ async function runSearch(){
 els.searchBtn.onclick = runSearch;
 els.q.addEventListener('keydown', e => { if(e.key === 'Enter') runSearch(); });
 
+els.settingsBtn?.addEventListener('click', () => {
+  els.settingsModal.classList.remove('hidden');
+});
+els.closeSettings?.addEventListener('click', () => {
+  els.settingsModal.classList.add('hidden');
+});
+els.settingsModal?.addEventListener('click', e => {
+  if(e.target === els.settingsModal) els.settingsModal.classList.add('hidden');
+});
+els.mrflensOnly.checked = state.onlyMrFlen;
+els.sortSelect.value = state.sortBy;
+els.mrflensOnly?.addEventListener('change', () => {
+  state.onlyMrFlen = els.mrflensOnly.checked;
+  try { localStorage.setItem(ONLY_MRFLEN_KEY, String(state.onlyMrFlen)); } catch {}
+  if(els.q.value.trim()) runSearch();
+});
+els.sortSelect?.addEventListener('change', () => {
+  state.sortBy = els.sortSelect.value;
+  try { localStorage.setItem(SORT_BY_KEY, state.sortBy); } catch {}
+  if(els.q.value.trim()) runSearch();
+});
+
+els.connectSC?.addEventListener('click', () => {
+  if (!cfg.scClientId || !cfg.scRedirectUri) {
+    alert('SoundCloud auth not configured.');
+    return;
+  }
+  const url = `https://soundcloud.com/connect?client_id=${encodeURIComponent(cfg.scClientId)}&response_type=token&scope=non-expiring&redirect_uri=${encodeURIComponent(cfg.scRedirectUri)}`;
+  window.location.href = url;
+});
+
+els.libraryBtn?.addEventListener('click', () => {
+  document.querySelector('.library')?.scrollIntoView({ behavior: 'smooth' });
+});
+
+const defaultQuery = cfg.mrflens?.audiusHandle;
+if (defaultQuery) {
+  els.q.value = defaultQuery;
+  runSearch();
+}
+
 els.openPalette?.addEventListener('click', showPalette);
 document.addEventListener('keydown', e => {
   if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){
     e.preventDefault(); showPalette();
   } else if(e.key === 'Escape') {
     hidePalette();
+    els.settingsModal?.classList.add('hidden');
   }
 });
 els.paletteInput?.addEventListener('input', () => renderRecent(els.paletteInput.value));
