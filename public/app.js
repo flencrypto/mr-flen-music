@@ -16,6 +16,10 @@ const els = {
   palette: document.querySelector('#palette'),
   paletteInput: document.querySelector('#paletteInput'),
   paletteList: document.querySelector('#paletteList'),
+  platformFilters: {
+    audius: document.querySelector('#filter-audius'),
+    soundcloud: document.querySelector('#filter-soundcloud')
+  },
   analytics: {
     likes: document.querySelector('#likesCount'),
     reposts: document.querySelector('#repostsCount'),
@@ -68,6 +72,13 @@ function savePlaylist(pl) {
   if (idx > -1) state.customPlaylists[idx] = pl;
   else state.customPlaylists.push(pl);
   savePreferences();
+}
+
+function getSelectedPlatforms() {
+  const selected = [];
+  if (els.platformFilters.audius?.checked) selected.push('audius');
+  if (els.platformFilters.soundcloud?.checked) selected.push('soundcloud');
+  return selected;
 }
 
 const state = {
@@ -300,7 +311,8 @@ async function runSearch(){
   ]);
   const a = aRes.status === 'fulfilled' ? aRes.value : [];
   const s = sRes.status === 'fulfilled' ? sRes.value : [];
-  const results = [...a, ...s].filter(t => t.isMrFlen);
+  const combined = [...a, ...s].filter(t => t.isMrFlen);
+  const results = filterTracks(combined, getSelectedPlatforms());
   renderList(els.results, results);
   if(els.status) els.status.textContent = results.length ? '' : 'No tracks found.';
   els.searchBtn.disabled = false;
