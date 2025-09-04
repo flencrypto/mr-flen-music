@@ -460,14 +460,23 @@
       const shuffleBtn = document.querySelector("#shuffle");
       const queueLabel = document.querySelector("#queueLabel");
       const genresEl = document.querySelector("#genres");
-      const progressContainer = document.getElementById("progressContainer");
-      const progressBar = document.getElementById("progressBar");
-      const currentTimeEl = document.getElementById("currentTime");
-      const durationEl = document.getElementById("duration");
+      let progressContainer;
+      let progressBar;
+      let currentTimeEl;
+      let durationEl;
+
+      function cacheProgressEls() {
+        progressContainer = document.getElementById("progressContainer");
+        progressBar = document.getElementById("progressBar");
+        currentTimeEl = document.getElementById("currentTime");
+        durationEl = document.getElementById("duration");
+      }
+
+      cacheProgressEls();
 
       function attachPlayer(player) {
         if (!player) {
-          progressContainer.style.display = "none";
+          if (progressContainer) progressContainer.style.display = "none";
           return;
         }
         progressContainer.style.display = "flex";
@@ -539,11 +548,18 @@
           );
           const { html } = await res.json();
           container.innerHTML = html;
+          cacheProgressEls();
           audioPlayer = null;
           attachPlayer(null);
         } else {
-          container.innerHTML =
-            '<audio id="player" controls preload="none" style="width:100%"></audio>';
+          container.innerHTML = `
+            <audio id="player" controls preload="none" style="width:100%"></audio>
+            <div id="progressContainer" class="row" style="display:none">
+              <span id="currentTime">0:00</span>
+              <input type="range" id="progressBar" min="0" value="0" />
+              <span id="duration">0:00</span>
+            </div>`;
+          cacheProgressEls();
           audioPlayer = document.querySelector("#player");
           attachPlayer(audioPlayer);
           const url = await streamUrl(track.id);
