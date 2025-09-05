@@ -45,9 +45,17 @@ Powered by the [Audius API](https://audius.org/) and [SoundCloud](https://soundc
 
 ## Android app
 
-A React Native mobile client lives in `mobile/` offering native navigation, dark theme styling, and a searchable track browser.
+A React Native mobile client lives in `mobile/` offering native navigation, dark theme styling, searchable track browser, and a trending section.
 
 ### Run
 1. cd mobile
 2. pnpm install
 3. pnpm start
+
+### Free hosting
+Export a static web build and deploy it to GitHub Pages or any static host:
+
+```bash
+pnpm --dir mobile web:build
+# upload mobile/dist to a static host or a `gh-pages` branch
+```

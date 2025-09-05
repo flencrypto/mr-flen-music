@@ -11,3 +11,7 @@ export function searchTracks (list: Track[], query: string): Track[] {
     return `${track.title} ${track.artist}`.toLowerCase().includes(q)
   })
 }
+
+export function getTrending (list: Track[], count: number): Track[] {
+  return [...list].sort((a, b) => b.plays - a.plays).slice(0, count)
+}

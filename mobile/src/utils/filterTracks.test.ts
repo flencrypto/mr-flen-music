@@ -1,10 +1,18 @@
-import { filterByArtist, searchTracks } from './filterTracks'
+import { filterByArtist, searchTracks, getTrending } from './filterTracks'
 import { tracks } from '../data/tracks'
 
 describe('filterByArtist', () => {
   it('filters tracks by given artist', () => {
     expect(filterByArtist(tracks, 'Mr.FLEN')).toHaveLength(2)
     expect(filterByArtist(tracks, 'Other')).toHaveLength(0)
+  })
+})
+
+describe('getTrending', () => {
+  it('returns tracks sorted by play count', () => {
+    const trending = getTrending(tracks, 2)
+    expect(trending).toHaveLength(2)
+    expect(trending[0].title).toBe('Night Drive')
   })
 })
 

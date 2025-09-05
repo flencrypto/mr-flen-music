@@ -5,13 +5,15 @@ import type { Track } from '../data/tracks'
 export interface TrackListProps {
   tracks: Track[]
   onSelect: (track: Track) => void
+  scrollEnabled?: boolean
 }
 
-export function TrackList ({ tracks, onSelect }: TrackListProps): JSX.Element {
+export function TrackList ({ tracks, onSelect, scrollEnabled = true }: TrackListProps): JSX.Element {
   return (
     <FlatList
       data={tracks}
       keyExtractor={(item) => item.id}
+      scrollEnabled={scrollEnabled}
       contentContainerStyle={styles.list}
       renderItem={({ item }) => (
         <TouchableOpacity style={styles.item} onPress={() => { onSelect(item) }}>

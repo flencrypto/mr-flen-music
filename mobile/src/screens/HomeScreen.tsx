@@ -1,17 +1,18 @@
-import React, { useState } from 'react'
-import { StyleSheet, TextInput, View } from 'react-native'
+import React, { useMemo, useState } from 'react'
+import { ScrollView, StyleSheet, Text, TextInput } from 'react-native'
 import { tracks } from '../data/tracks'
 import { TrackList } from '../components/TrackList'
-import { searchTracks } from '../utils/filterTracks'
+import { searchTracks, getTrending } from '../utils/filterTracks'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../navigation/RootStack'
 
 export function HomeScreen ({ navigation }: NativeStackScreenProps<RootStackParamList, 'Home'>): JSX.Element {
   const [query, setQuery] = useState('')
-  const filtered = searchTracks(tracks, query)
+  const filtered = useMemo(() => searchTracks(tracks, query), [query])
+  const trending = useMemo(() => getTrending(tracks, 3), [])
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <TextInput
         placeholder='Search for music'
         placeholderTextColor='#9ca3af'
@@ -19,8 +20,23 @@ export function HomeScreen ({ navigation }: NativeStackScreenProps<RootStackPara
         value={query}
         onChangeText={setQuery}
       />
-      <TrackList tracks={filtered} onSelect={(track) => { navigation.navigate('Track', { track }) }} />
-    </View>
+      {query === '' && (
+        <>
+          <Text style={styles.heading}>Trending</Text>
+          <TrackList
+            tracks={trending}
+            onSelect={(track) => { navigation.navigate('Track', { track }) }}
+            scrollEnabled={false}
+          />
+        </>
+      )}
+      <Text style={styles.heading}>All Tracks</Text>
+      <TrackList
+        tracks={filtered}
+        onSelect={(track) => { navigation.navigate('Track', { track }) }}
+        scrollEnabled={false}
+      />
+    </ScrollView>
   )
 }
 
@@ -29,6 +45,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#0f172a'
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#e5e7eb',
+    marginBottom: 8
   },
   search: {
     marginBottom: 16,

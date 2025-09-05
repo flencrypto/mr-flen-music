@@ -5,9 +5,10 @@
   "main": "App.tsx",
   "scripts": {
     "start": "expo start",
-    "lint": "eslint .",
+    "lint": "eslint . --config .eslintrc.cjs",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "web:build": "expo export --platform web"
   },
   "dependencies": {
     "@react-navigation/native": "^6.1.6",
