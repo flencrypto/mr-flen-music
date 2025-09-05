@@ -42,3 +42,12 @@ The app icon is loaded from an external source so no binary images live in the r
 ## Attribution
 
 Powered by the [Audius API](https://audius.org/) and [SoundCloud](https://soundcloud.com/).
+
+## Android app
+
+A React Native mobile client lives in `mobile/` offering native navigation, dark theme styling, and a searchable track browser.
+
+### Run
+1. cd mobile
+2. pnpm install
+3. pnpm start
