@@ -1,10 +1,14 @@
-import type { ConfigContext, ExpoConfig } from 'expo/config'
+import type { ExpoConfig } from 'expo/config'
 
-export default ({ config }: ConfigContext): ExpoConfig => ({
-  ...config,
-  name: 'Mr.FLEN Music',
+const config: ExpoConfig = {
+  name: 'Mr FLEN Music',
   slug: 'mr-flen-mobile',
   version: '1.0.0',
   orientation: 'portrait',
-  platforms: ['android']
-})
+  assetBundlePatterns: ['**/*'],
+  android: {
+    package: 'com.mrflen.music'
+  }
+}
+
+export default config
