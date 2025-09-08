@@ -279,6 +279,12 @@
       const MRFLEN_AUDIUS_HANDLE = "Mr.FLEN";
       const MRFLEN_SC_USERNAME = "mr-flen";
       const SOUNDCLOUD_CLIENT_ID = "YOUR_SOUNDCLOUD_API_KEY";
+      // pagination state for infinite scrolling
+      let currentQuery = "";
+      let currentOffset = 0;
+      const PAGE_LIMIT = 20;
+      let loadingMore = false;
+      let hasMore = false;
       // BACKEND-ONLY (do NOT ship secrets to the browser):
       // const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET";
 
@@ -288,9 +294,9 @@
         return data[Math.floor(Math.random() * data.length)];
       }
 
-      async function searchTracks(query) {
+      async function searchTracks(query, offset = 0, limit = PAGE_LIMIT) {
         const host = await pickHost();
-        const url = `${host}/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+        const url = `${host}/v1/tracks/search?query=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
         const res = await fetch(url, {
           headers: { Accept: "application/json" },
         });
@@ -298,8 +304,8 @@
         return json.data || [];
       }
 
-      async function searchSoundCloud(query) {
-        const url = `https://api.soundcloud.com/tracks?client_id=${SOUNDCLOUD_CLIENT_ID}&q=${encodeURIComponent(query)}&limit=20`;
+      async function searchSoundCloud(query, offset = 0, limit = PAGE_LIMIT) {
+        const url = `https://api.soundcloud.com/tracks?client_id=${SOUNDCLOUD_CLIENT_ID}&q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error("sc");
         const json = await res.json();
@@ -680,18 +686,22 @@
         }
       }
 
-      async function performSearch(q) {
+      async function performSearch(q, append = false) {
         if (!q) {
           loadHome(currentGenre);
           return;
         }
-        results.innerHTML =
-          '<div class="glass" style="padding:16px;">Searching…</div>';
+        if (!append) {
+          currentQuery = q;
+          currentOffset = 0;
+          results.innerHTML =
+            '<div class="glass" style="padding:16px;">Searching…</div>';
+        }
         try {
           let scError = false;
           const [a, s] = await Promise.all([
-            searchTracks(q),
-            searchSoundCloud(q).catch(() => {
+            searchTracks(q, currentOffset),
+            searchSoundCloud(q, currentOffset).catch(() => {
               scError = true;
               return [];
             }),
@@ -710,7 +720,7 @@
           const scopeMessage = searchAllArtists
             ? 'Showing all artists'
             : 'Showing Mr.FLEN only';
-          if (!tracks.length) {
+          if (!tracks.length && !append) {
             results.innerHTML =
               `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
               `<div class="glass" style="padding:16px;margin-top:8px;">No ${
@@ -721,24 +731,46 @@
                 '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ SoundCloud results unavailable.</div>';
             return;
           }
-          tracks.sort(
-            (a, b) => b.plays - a.plays || a.title.localeCompare(b.title),
-          );
-          let html =
-            `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
-            renderTracksList(tracks, true);
-          if (scError)
-            html =
-              '<div class="glass" style="padding:16px;">⚠️ SoundCloud results unavailable.</div>' +
-              html;
-          results.innerHTML = html;
+          if (!append) {
+            tracks.sort(
+              (a, b) => b.plays - a.plays || a.title.localeCompare(b.title),
+            );
+            let html =
+              `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
+              renderTracksList(tracks, true);
+            if (scError)
+              html =
+                '<div class="glass" style="padding:16px;">⚠️ SoundCloud results unavailable.</div>' +
+                html;
+            results.innerHTML = html;
+          } else {
+            results.innerHTML += renderTracksList(tracks, true);
+          }
           attachTrackEvents();
+          hasMore =
+            a.length === PAGE_LIMIT || s.length === PAGE_LIMIT;
+          currentOffset += PAGE_LIMIT;
         } catch (err) {
           console.error(err);
-          results.innerHTML =
-            '<div class="glass" style="padding:16px;">Error contacting APIs.</div>';
+          if (!append)
+            results.innerHTML =
+              '<div class="glass" style="padding:16px;">Error contacting APIs.</div>';
         }
       }
+
+      window.addEventListener("scroll", async () => {
+        if (
+          currentQuery &&
+          hasMore &&
+          !loadingMore &&
+          window.innerHeight + window.scrollY >=
+            document.body.offsetHeight - 100
+        ) {
+          loadingMore = true;
+          await performSearch(currentQuery, true);
+          loadingMore = false;
+        }
+      });
 
       let debounceTimer = null;
       search.addEventListener("input", (e) => {
