@@ -16,29 +16,35 @@
     />
     <style>
       :root {
-        --color-primary: #c97c1a;
-        --color-secondary: #8b5e2e;
-        --color-bg: #1a0f0a;
-        --color-glass: rgba(80, 56, 40, 0.6);
-        --color-text: #f5e6c4;
-        --color-muted: #b2947d;
+        --color-primary: #2f81f7;
+        --color-secondary: #1f6feb;
+        --color-bg: #0d1117;
+        --color-glass: rgba(32, 38, 50, 0.6);
+        --color-text: #f0f6fc;
+        --color-muted: #8b949e;
       }
       body {
         background: var(--color-bg);
         color: var(--color-text);
-        font-family: "Cinzel", serif;
+        font-family: "Inter", sans-serif;
         margin: 0;
       }
+      header,
+      footer,
+      main {
+        max-width: 1100px;
+        margin: auto;
+      }
       .glass {
-        backdrop-filter: saturate(1.2) blur(10px);
+        backdrop-filter: saturate(1.2) blur(12px);
         background: var(--color-glass);
-        border: 1px solid var(--color-secondary);
+        border: 1px solid #ffffff11;
         border-radius: 16px;
-        box-shadow: 0 0 10px #000;
+        box-shadow: 0 0 20px #000;
       }
       .pill {
         padding: 2px 8px;
-        border: 1px solid var(--color-secondary);
+        border: 1px solid #ffffff22;
         border-radius: 999px;
         font-size: 12px;
         background: var(--color-glass);
@@ -49,6 +55,33 @@
         border-radius: 50%;
         border: 2px solid var(--color-secondary);
         box-shadow: 0 0 4px #000;
+        transition: transform 0.3s;
+      }
+      .logo:hover {
+        transform: rotate(10deg);
+      }
+      .track-art {
+        width: 200px;
+        height: 200px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px #000;
+        transition: transform 0.3s;
+      }
+      .track-art:hover {
+        transform: scale(1.05);
+      }
+      .fade-in {
+        animation: fadeIn 0.4s ease-out both;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
     </style>
   </head>
@@ -75,7 +108,7 @@
         >← Home</a
       >
     </header>
-    <main id="track" class="glass" style="padding: 16px; margin: 16px">
+    <main id="track" class="glass fade-in" style="padding: 16px; margin: 16px">
       Loading track…
     </main>
     <footer
@@ -130,9 +163,9 @@
             const t = await fetchSoundCloudTrack(id);
             const art = t.artwork_url || "";
             el.innerHTML = `
-          <img src="${art}" alt="artwork" style="width:200px;height:200px;border-radius:12px" />
-          <h1>${t.title || ""}</h1>
-          <p>@${t.user ? t.user.username : ""}</p>`;
+          <img src="${art}" alt="artwork" class="track-art fade-in" />
+          <h1 class="fade-in">${t.title || ""}</h1>
+          <p class="fade-in">@${t.user ? t.user.username : ""}</p>`;
             const o = await fetch(
               `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(t.permalink_url)}`,
             );
@@ -148,9 +181,9 @@
                 "";
               const handle = t.user && t.user.handle ? t.user.handle : "";
               el.innerHTML = `
-            <img src="${art}" alt="artwork" style="width:200px;height:200px;border-radius:12px" />
-            <h1>${t.title || ""}</h1>
-            <p>@${handle}</p>`;
+            <img src="${art}" alt="artwork" class="track-art fade-in" />
+            <h1 class="fade-in">${t.title || ""}</h1>
+            <p class="fade-in">@${handle}</p>`;
               playerContainer.src = await streamUrl(t.id);
             }
           }
