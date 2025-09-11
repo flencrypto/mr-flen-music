@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from 'react-native'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../navigation/RootStack'
 
-export function TrackScreen ({ route }: NativeStackScreenProps<RootStackParamList, 'Track'>): JSX.Element {
+export function TrackScreen ({ route }: NativeStackScreenProps<RootStackParamList, 'Track'>): React.JSX.Element {
   const { track } = route.params
   return (
     <View style={styles.container}>

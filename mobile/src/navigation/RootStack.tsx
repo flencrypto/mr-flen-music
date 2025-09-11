@@ -12,12 +12,16 @@ export interface RootStackParamList extends Record<string, object | undefined> {
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
-export function RootStack (): JSX.Element {
+export function RootStack (): React.JSX.Element {
   return (
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name='Home' component={HomeScreen} />
-        <Stack.Screen name='Track' component={TrackScreen} options={({ route }) => ({ title: route.params.track.title })} />
+        <Stack.Screen
+          name='Track'
+          component={TrackScreen}
+          options={({ route }) => ({ title: route.params.track.title })}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   )

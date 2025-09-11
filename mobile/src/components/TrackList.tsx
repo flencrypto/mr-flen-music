@@ -7,7 +7,7 @@ export interface TrackListProps {
   onSelect: (track: Track) => void
 }
 
-export function TrackList ({ tracks, onSelect }: TrackListProps): JSX.Element {
+export function TrackList ({ tracks, onSelect }: TrackListProps): React.JSX.Element {
   return (
     <FlatList
       data={tracks}
