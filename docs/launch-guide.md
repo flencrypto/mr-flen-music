@@ -20,7 +20,8 @@ This guide covers how to run the app on both desktop web browsers and as a nativ
    ```bash
    cd mobile
    ```
-2. **Install dependencies**
+2. **Install dependencies (Expo SDK 53)**
+
    ```bash
    pnpm install
    ```
