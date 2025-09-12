@@ -23,11 +23,25 @@ async function exchangeCodeForToken(provider, code, fetchImpl = fetch) {
   return data.access_token;
 }
 
+function initGoogleAuth(
+  clientId = typeof window !== 'undefined' ? window.GOOGLE_CLIENT_ID : undefined,
+  callback = typeof window !== 'undefined' ? window.onGoogleSignIn : undefined
+) {
+  const gsi =
+    typeof window !== 'undefined' ? window.google?.accounts?.id : undefined;
+  if (!gsi || !clientId || typeof callback !== 'function') return false;
+  gsi.initialize({ client_id: clientId, callback });
+  const container = document.querySelector('.g_id_signin');
+  if (container) gsi.renderButton(container, { theme: 'standard', size: 'large' });
+  return true;
+}
+
 if (typeof window !== 'undefined') {
   window.handleAuthSuccess = handleAuthSuccess;
   window.exchangeCodeForToken = exchangeCodeForToken;
+  window.initGoogleAuth = initGoogleAuth;
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { handleAuthSuccess, exchangeCodeForToken };
+  module.exports = { handleAuthSuccess, exchangeCodeForToken, initGoogleAuth };
 }
