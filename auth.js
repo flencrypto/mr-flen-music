@@ -9,7 +9,8 @@ async function exchangeCodeForToken(provider, code, fetchImpl = fetch) {
   const endpoints = {
     x: 'https://api.twitter.com/2/oauth2/token',
     snapchat: 'https://accounts.snapchat.com/accounts/oauth2/token',
-    tiktok: 'https://open-api.tiktok.com/oauth/access_token'
+    tiktok: 'https://open-api.tiktok.com/oauth/access_token',
+    google: 'https://oauth2.googleapis.com/token'
   };
   const url = endpoints[provider];
   if (!url) throw new Error('Unknown provider');
