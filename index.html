@@ -133,6 +133,13 @@
         color: #05060a;
         border-color: var(--color-primary);
       }
+      .sort-select {
+        padding: 4px 10px;
+        border: 1px solid var(--color-muted);
+        border-radius: 8px;
+        background: var(--color-glass);
+        color: var(--color-text);
+      }
       #progressContainer {
         display: none;
         align-items: center;
@@ -212,6 +219,14 @@
         <label for="all-artists-toggle">Include all artists</label>
       </div>
       <div id="genres" class="row"></div>
+      <div class="row" style="margin-top:8px;align-items:center;gap:8px;">
+        <label for="sort-select">Sort:</label>
+        <select id="sort-select" class="sort-select">
+          <option value="trending">Trending</option>
+          <option value="popular">Most Popular</option>
+          <option value="latest">Latest</option>
+        </select>
+      </div>
     </header>
 
     <div id="login-modal" class="modal hidden">
@@ -263,6 +278,8 @@
       </div>
     </footer>
     <script src="format-time.js"></script>
+    <script src="public/sort-tracks.js"></script>
+    <script src="public/filter-tracks.js"></script>
     <script src="public/drive.js"></script>
     <script type="module">
       /**
@@ -328,6 +345,16 @@
         return (json.data || []).map(normalizeAudiusTrack);
       }
 
+      async function genreTracks(genre, sort) {
+        const host = await pickHost();
+        const genreParam = genre ? `&genre=${encodeURIComponent(genre)}` : "";
+        const sortParam = sort === 'latest' ? 'release_date' : 'plays';
+        const url = `${host}/v1/tracks?limit=5${genreParam}&sort=${sortParam}&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+        const res = await fetch(url, { headers: { Accept: "application/json" } });
+        const json = await res.json();
+        return (json.data || []).map(normalizeAudiusTrack);
+      }
+
       async function trendingPlaylists() {
         const host = await pickHost();
         const url = `${host}/v1/playlists/trending?limit=5&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
@@ -374,6 +401,8 @@
             (t.artwork && (t.artwork["150x150"] || t.artwork["480x480"])) || "",
           user: { handle: t.user && t.user.handle ? t.user.handle : "" },
           plays: t.play_count || 0,
+          genre: t.genre || '',
+          createdAt: t.release_date || t.created_at || '',
         };
       }
 
@@ -386,6 +415,8 @@
           permalink_url: t.permalink_url,
           user: { handle: t.user && t.user.username ? t.user.username : "" },
           plays: t.playback_count || 0,
+          genre: t.genre || '',
+          createdAt: t.created_at || '',
         };
       }
 
@@ -516,8 +547,9 @@
       });
 
       const { handleAuthSuccess } = window;
-      const GENRES = ["All", "UKG", "Grime", "House", "DNB"];
+      const GENRES = ["All", "UKG", "Grime", "House", "Deep House", "DNB"];
       let currentGenre = null;
+      let currentSort = 'trending';
       if (window.location.hash.includes("access_token")) {
         const params = new URLSearchParams(window.location.hash.substring(1));
         const token = params.get("access_token");
@@ -538,6 +570,15 @@
           loadHome(currentGenre);
         };
         genresEl.appendChild(chip);
+      });
+      const sortSelect = document.getElementById('sort-select');
+      sortSelect.addEventListener('change', () => {
+        currentSort = sortSelect.value;
+        if (currentQuery) {
+          performSearch(currentQuery);
+        } else {
+          loadHome(currentGenre);
+        }
       });
 
       const trackCache = {};
@@ -665,15 +706,30 @@
         results.innerHTML =
           '<div class="glass" style="padding:16px;">Loading…</div>';
         try {
-          const [tracks, playlists, feature] = await Promise.all([
-            trendingTracks(genre),
+          const [tracksRaw, playlists, feature] = await Promise.all([
+            currentSort === 'trending'
+              ? trendingTracks(genre)
+              : genreTracks(genre, currentSort),
             trendingPlaylists(),
             latestRelease(),
           ]);
+          const tracks =
+            currentSort === 'trending'
+              ? tracksRaw
+              : window.sortTracks(
+                  tracksRaw,
+                  currentSort === 'latest' ? 'latest' : 'plays',
+                );
           const genreLabel = genre ? ` — ${genre}` : "";
+          const sortLabel =
+            currentSort === 'latest'
+              ? 'Latest Tracks'
+              : currentSort === 'popular'
+              ? 'Most Popular Tracks'
+              : 'Trending Tracks';
           results.innerHTML = `
       ${renderFeatured(feature)}
-      <h2>Trending Tracks${genreLabel}</h2>
+      <h2>${sortLabel}${genreLabel}</h2>
       <div class="carousel">${renderTracksList(tracks, true)}</div>
       <h2>Trending Playlists</h2>
       ${renderPlaylistList(playlists)}
@@ -716,7 +772,10 @@
               (t) => t.user && t.user.handle === MRFLEN_SC_USERNAME,
             );
           }
-          const tracks = [...audiusTracks, ...scTracks];
+          let tracks = [...audiusTracks, ...scTracks];
+          if (currentGenre) tracks = window.filterByGenre(tracks, currentGenre);
+          const sortKey = currentSort === 'latest' ? 'latest' : 'plays';
+          tracks = window.sortTracks(tracks, sortKey);
           const scopeMessage = searchAllArtists
             ? 'Showing all artists'
             : 'Showing Mr.FLEN only';
@@ -732,9 +791,6 @@
             return;
           }
           if (!append) {
-            tracks.sort(
-              (a, b) => b.plays - a.plays || a.title.localeCompare(b.title),
-            );
             let html =
               `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
               renderTracksList(tracks, true);
