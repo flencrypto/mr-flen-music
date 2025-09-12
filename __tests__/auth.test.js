@@ -1,4 +1,8 @@
-const { handleAuthSuccess, exchangeCodeForToken } = require('../auth');
+const {
+  handleAuthSuccess,
+  exchangeCodeForToken,
+  initGoogleAuth
+} = require('../auth');
 
 describe('OAuth helpers', () => {
   beforeEach(() => {
@@ -19,5 +23,18 @@ describe('OAuth helpers', () => {
     const token = await exchangeCodeForToken('x', 'CODE', mockFetch);
     expect(mockFetch).toHaveBeenCalled();
     expect(token).toBe('abc');
+  });
+
+  test('initGoogleAuth initialises Google sign-in when library available', () => {
+    document.body.innerHTML = '<div class="g_id_signin"></div>';
+    const initialize = jest.fn();
+    const renderButton = jest.fn();
+    window.google = { accounts: { id: { initialize, renderButton } } };
+    const cb = jest.fn();
+    const result = initGoogleAuth('client', cb);
+    expect(result).toBe(true);
+    expect(initialize).toHaveBeenCalledWith({ client_id: 'client', callback: cb });
+    expect(renderButton).toHaveBeenCalled();
+    delete window.google;
   });
 });
