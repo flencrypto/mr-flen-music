@@ -370,8 +370,22 @@
       const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734"; // public, read-only (ok in client)
       const MRFLEN_AUDIUS_HANDLE = "Mr.FLEN";
       const MRFLEN_SC_USERNAME = "mr-flen";
-      const SOUNDCLOUD_CLIENT_ID = "YOUR_SOUNDCLOUD_API_KEY";
-      const MRFLEN_SPOTIFY_ID = env.MRFLEN_SPOTIFY_ID || "";
+      const SOUNDCLOUD_CLIENT_ID =
+        process?.env?.SOUNDCLOUD_CLIENT_ID || "";
+      const SOUND_CLOUD_ENABLED = Boolean(SOUNDCLOUD_CLIENT_ID);
+      const MRFLEN_SPOTIFY_ID = process?.env?.MRFLEN_SPOTIFY_ID || "";
+      if (!SOUND_CLOUD_ENABLED) {
+        const notice = document.createElement("div");
+        notice.className = "glass";
+        notice.style.padding = "16px";
+        notice.textContent = "⚠️ SoundCloud results unavailable.";
+        document
+          .getElementById("search-section")
+          .insertBefore(
+            notice,
+            document.getElementById("results")
+          );
+      }
       // Theme setup
       const { applyTheme, getSavedTheme, toggleTheme } = window.Theme;
       applyTheme(getSavedTheme());
@@ -404,6 +418,7 @@
       }
 
       async function searchSoundCloud(query, offset = 0, limit = PAGE_LIMIT) {
+        if (!SOUND_CLOUD_ENABLED) throw new Error("sc");
         const url = `https://api.soundcloud.com/tracks?client_id=${SOUNDCLOUD_CLIENT_ID}&q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error("sc");
@@ -1041,7 +1056,7 @@
               `<div class="glass" style="padding:16px;margin-top:8px;">No ${
                 searchAllArtists ? '' : 'Mr.FLEN '
               }tracks found.</div>`;
-            if (scError)
+            if (scError && SOUND_CLOUD_ENABLED)
               results.innerHTML +=
                 '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ SoundCloud results unavailable.</div>';
             if (spError)
@@ -1053,7 +1068,7 @@
             let html =
               `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
               renderTracksList(tracks, true);
-            if (scError)
+            if (scError && SOUND_CLOUD_ENABLED)
               html =
                 '<div class="glass" style="padding:16px;">⚠️ SoundCloud results unavailable.</div>' +
                 html;
