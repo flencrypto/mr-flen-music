@@ -261,13 +261,14 @@
         gap: 8px;
       "
     >
-      <div class="row" style="justify-content: space-between">
-        <span id="queueLabel">Queue: 0</span>
-        <div class="row" style="gap: 4px">
-          <button id="shuffle" class="btn">🔀</button>
-          <button id="next" class="btn">⏭</button>
+        <div class="row" style="justify-content: space-between">
+          <span id="queueLabel">Queue: 0</span>
+          <div class="row" style="gap: 4px">
+            <button id="showQueue" class="btn">📃</button>
+            <button id="shuffle" class="btn">🔀</button>
+            <button id="next" class="btn">⏭</button>
+          </div>
         </div>
-      </div>
       <div id="playerContainer">
         <audio id="player" controls preload="none" style="width: 100%"></audio>
         <div id="progressContainer" class="row" style="display:none">
@@ -276,12 +277,30 @@
           <span id="duration">0:00</span>
         </div>
       </div>
-    </footer>
-    <script src="format-time.js"></script>
-    <script src="public/sort-tracks.js"></script>
-    <script src="public/filter-tracks.js"></script>
-    <script src="public/drive.js"></script>
-    <script type="module">
+      </footer>
+      <div
+        id="queueModal"
+        class="glass"
+        style="display:none; position:fixed; right:16px; bottom:120px; width:260px; max-height:60vh; overflow:auto; padding:8px;"
+      >
+        <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <strong>Up Next</strong>
+          <button id="closeQueue" class="btn">✖</button>
+        </div>
+        <ul id="queueItems" style="list-style:none;padding:0;margin:0;"></ul>
+        <button id="savePlaylistBtn" class="btn" style="margin-top:8px;width:100%;">Save Playlist</button>
+        <div id="playlistSection" style="margin-top:8px;">
+          <strong>Playlists</strong>
+          <ul id="playlistList" style="list-style:none;padding:0;margin:4px 0 0 0;"></ul>
+        </div>
+      </div>
+      <script src="format-time.js"></script>
+      <script src="public/sort-tracks.js"></script>
+      <script src="public/filter-tracks.js"></script>
+      <script src="public/drive.js"></script>
+      <script src="auth.js"></script>
+      <script src="public/queue-utils.js"></script>
+      <script type="module">
       /**
        * Audius REST integration for Mr.FLENs Music Finder.
        *
@@ -495,10 +514,18 @@
       const snapLoginBtn = document.querySelector("#snap-login-btn");
       const tiktokLoginBtn = document.querySelector("#tiktok-login-btn");
       const closeLogin = document.querySelector("#close-login");
-      const nextBtn = document.querySelector("#next");
-      const shuffleBtn = document.querySelector("#shuffle");
-      const queueLabel = document.querySelector("#queueLabel");
-      const genresEl = document.querySelector("#genres");
+        const nextBtn = document.querySelector("#next");
+        const shuffleBtn = document.querySelector("#shuffle");
+        const queueLabel = document.querySelector("#queueLabel");
+        const showQueueBtn = document.getElementById("showQueue");
+        const queueModal = document.getElementById("queueModal");
+        const queueItems = document.getElementById("queueItems");
+        const closeQueueBtn = document.getElementById("closeQueue");
+        const savePlaylistBtn = document.getElementById("savePlaylistBtn");
+        const playlistList = document.getElementById("playlistList");
+        const genresEl = document.querySelector("#genres");
+        const { addToQueue, removeFromQueue, moveInQueue, adjustIndexOnRemove } =
+          queueUtils;
       let progressContainer;
       let progressBar;
       let currentTimeEl;
@@ -546,18 +573,33 @@
         if (search.value.trim()) search.dispatchEvent(new Event("input"));
       });
 
-      const { handleAuthSuccess } = window;
-      const GENRES = ["All", "UKG", "Grime", "House", "Deep House", "DNB"];
-      let currentGenre = null;
-      let currentSort = 'trending';
-      if (window.location.hash.includes("access_token")) {
-        const params = new URLSearchParams(window.location.hash.substring(1));
-        const token = params.get("access_token");
-        const provider = params.get("state");
-        if (token && provider) handleAuthSuccess(provider, token);
-        window.location.hash = "";
-      }
-      GENRES.forEach((g) => {
+        const { handleAuthSuccess, exchangeCodeForToken } = window;
+        const GENRES = ["All", "UKG", "Grime", "House", "Deep House", "DNB"];
+        let currentGenre = null;
+        let currentSort = 'trending';
+        if (window.location.hash.includes("access_token")) {
+          const params = new URLSearchParams(window.location.hash.substring(1));
+          const token = params.get("access_token");
+          const provider = params.get("state");
+          if (token && provider) handleAuthSuccess(provider, token);
+          window.location.hash = "";
+        } else {
+          const params = new URLSearchParams(window.location.search);
+          const code = params.get("code");
+          const provider = params.get("state");
+          if (code && provider) {
+            exchangeCodeForToken(provider, code)
+              .then((tok) => handleAuthSuccess(provider, tok))
+              .catch((err) => console.error('Auth exchange failed', err))
+              .finally(() => {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('code');
+                url.searchParams.delete('state');
+                window.history.replaceState({}, '', url.pathname + url.search);
+              });
+          }
+        }
+        GENRES.forEach((g) => {
         const chip = document.createElement("button");
         chip.textContent = g;
         chip.className = "chip" + (g === "All" ? " active" : "");
@@ -581,13 +623,93 @@
         }
       });
 
-      const trackCache = {};
-      const queue = [];
-      let currentIndex = -1;
+        const trackCache = {};
+        let queue = [];
+        let currentIndex = -1;
 
-      function updateQueue() {
-        queueLabel.textContent = `Queue: ${queue.length}`;
-      }
+        function renderQueue() {
+          queueItems.innerHTML = queue
+            .map(
+              (t, i) =>
+                `<li class="row" data-idx="${i}" style="justify-content:space-between;align-items:center;margin-bottom:4px;">
+                  <span style="flex:1">${t.title || ''}</span>
+                  <div class="row" style="gap:4px;">
+                    <button class="btn up" data-idx="${i}">⬆️</button>
+                    <button class="btn down" data-idx="${i}">⬇️</button>
+                    <button class="btn remove" data-idx="${i}">✖️</button>
+                  </div>
+                </li>`
+            )
+            .join('');
+        }
+
+        function updateQueue() {
+          queueLabel.textContent = `Queue: ${queue.length}`;
+          if (queueModal.style.display !== 'none') renderQueue();
+        }
+
+        function renderPlaylists() {
+          playlistList.innerHTML = customPlaylists
+            .map(
+              (p, i) =>
+                `<li class="row" data-idx="${i}" style="justify-content:space-between;align-items:center;margin-bottom:4px;">
+                  <span style="flex:1">${p.name}</span>
+                  <div class="row" style="gap:4px;">
+                    <button class="btn load" data-idx="${i}">▶</button>
+                    <button class="btn del" data-idx="${i}">🗑</button>
+                  </div>
+                </li>`
+            )
+            .join('');
+        }
+
+        showQueueBtn.onclick = () => {
+          queueModal.style.display = 'block';
+          renderQueue();
+          renderPlaylists();
+        };
+        closeQueueBtn.onclick = () => (queueModal.style.display = 'none');
+
+        queueItems.onclick = (e) => {
+          const idx = Number(e.target.dataset.idx);
+          if (Number.isNaN(idx)) return;
+          if (e.target.classList.contains('remove')) {
+            queue = removeFromQueue(queue, idx);
+            currentIndex = adjustIndexOnRemove(currentIndex, idx);
+            if (currentIndex >= queue.length) currentIndex = queue.length - 1;
+            updateQueue();
+          } else if (e.target.classList.contains('up')) {
+            queue = moveInQueue(queue, idx, idx - 1);
+            updateQueue();
+          } else if (e.target.classList.contains('down')) {
+            queue = moveInQueue(queue, idx, idx + 1);
+            updateQueue();
+          }
+        };
+
+        savePlaylistBtn.onclick = () => {
+          if (!queue.length) return;
+          const name = prompt('Playlist name?');
+          if (!name) return;
+          savePlaylist({ name, tracks: queue.slice() });
+          renderPlaylists();
+        };
+
+        playlistList.onclick = (e) => {
+          const idx = Number(e.target.dataset.idx);
+          if (Number.isNaN(idx)) return;
+          if (e.target.classList.contains('load')) {
+            const pl = customPlaylists[idx];
+            queue = pl.tracks.slice();
+            currentIndex = -1;
+            queueModal.style.display = 'none';
+            updateQueue();
+          } else if (e.target.classList.contains('del')) {
+            customPlaylists.splice(idx, 1);
+            savePreferences();
+            renderPlaylists();
+          }
+        };
 
       async function playTrack(track) {
         const container = document.querySelector("#playerContainer");
@@ -659,7 +781,7 @@
             const key = `${btn.dataset.platform}:${btn.dataset.id}`;
             const track = trackCache[key];
             if (track.platform === "audius") {
-              queue.push(track);
+              queue = addToQueue(queue, track);
               currentIndex = queue.length - 1;
               updateQueue();
             }
@@ -670,7 +792,7 @@
           btn.onclick = () => {
             const key = `${btn.dataset.platform}:${btn.dataset.id}`;
             const track = trackCache[key];
-            queue.push(track);
+            queue = addToQueue(queue, track);
             updateQueue();
           };
         });
