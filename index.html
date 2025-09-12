@@ -282,7 +282,10 @@
       </section>
       <section id="new-releases-section">
         <h2>New Releases</h2>
-        <input type="month" id="release-month" />
+        <div class="row" style="align-items:center;gap:8px;">
+          <label for="month-select">Browse by month:</label>
+          <select id="month-select"></select>
+        </div>
         <div id="new-releases-list" class="grid"></div>
       </section>
       <section id="search-section">
@@ -346,6 +349,7 @@
       <script src="public/drive.js"></script>
       <script src="auth.js"></script>
       <script src="public/queue-utils.js"></script>
+      <script src="spotify.js"></script>
       <script type="module">
       /**
        * Audius REST integration for Mr.FLENs Music Finder.
@@ -361,6 +365,7 @@
       const MRFLEN_AUDIUS_HANDLE = "Mr.FLEN";
       const MRFLEN_SC_USERNAME = "mr-flen";
       const SOUNDCLOUD_CLIENT_ID = "YOUR_SOUNDCLOUD_API_KEY";
+      const MRFLEN_SPOTIFY_ID = process?.env?.MRFLEN_SPOTIFY_ID || "";
       // Theme setup
       const { applyTheme, getSavedTheme, toggleTheme } = window.Theme;
       applyTheme(getSavedTheme());
@@ -577,7 +582,7 @@
       const results = document.querySelector("#results");
       const refengineeredList = document.querySelector("#refengineered-list");
       const newReleasesList = document.querySelector("#new-releases-list");
-      const releaseMonthInput = document.getElementById("release-month");
+      const monthSelect = document.getElementById("month-select");
       let audioPlayer = document.querySelector("#player");
       const muteBtn = document.getElementById("mute-toggle");
       const search = document.querySelector("#search");
@@ -842,7 +847,12 @@
           cacheProgressEls();
           audioPlayer = document.querySelector("#player");
           attachPlayer(audioPlayer);
-          const url = await streamUrl(track.id);
+          let url = '';
+          if (track.platform === "spotify") {
+            url = track.streamUrl;
+          } else {
+            url = await streamUrl(track.id);
+          }
           audioPlayer.src = url;
           await audioPlayer.play();
           audioPlayer.addEventListener("ended", () => nextBtn.onclick(), {
@@ -858,7 +868,7 @@
             const buttons = [
               `<button data-platform="${t.platform}" data-id="${t.id}" class="btn play">▶</button>`,
             ];
-            if (t.platform === "audius")
+            if (t.platform !== "soundcloud")
               buttons.push(
                 `<button data-platform="${t.platform}" data-id="${t.id}" class="btn queue">➕</button>`,
               );
@@ -870,7 +880,13 @@
                 `<a href="track.html?platform=${t.platform}&id=${t.id}" class="btn">Go To Track</a>`,
               );
             const cols = `72px 1fr${" auto".repeat(buttons.length)}`;
-            const badge = `<span class="pill">${t.platform === "audius" ? "Audius" : "SoundCloud"}</span>`;
+            const badge = `<span class="pill">${
+              t.platform === "audius"
+                ? "Audius"
+                : t.platform === "soundcloud"
+                ? "SoundCloud"
+                : "Spotify"
+            }</span>`;
             return `
       <div class="glass track-card" style="grid-template-columns:${cols};">
         <img src="${t.artwork}" width="72" height="72" loading="lazy" alt="artwork" />
@@ -890,7 +906,7 @@
           btn.onclick = async () => {
             const key = `${btn.dataset.platform}:${btn.dataset.id}`;
             const track = trackCache[key];
-            if (track.platform === "audius") {
+            if (track.platform !== "soundcloud") {
               queue = addToQueue(queue, track);
               currentIndex = queue.length - 1;
               updateQueue();
@@ -987,15 +1003,21 @@
         }
         try {
           let scError = false;
-          const [a, s] = await Promise.all([
+          let spError = false;
+          const [a, s, p] = await Promise.all([
             searchTracks(q, currentOffset),
             searchSoundCloud(q, currentOffset).catch(() => {
               scError = true;
               return [];
             }),
+            searchSpotify(q, currentOffset, PAGE_LIMIT).catch(() => {
+              spError = true;
+              return [];
+            }),
           ]);
           let audiusTracks = a.map(normalizeAudiusTrack);
           let scTracks = s.map(normalizeSoundCloudTrack);
+          let spTracks = p.map(normalizeSpotifyTrack);
           if (!searchAllArtists) {
             audiusTracks = audiusTracks.filter(
               (t) => t.user && t.user.handle === MRFLEN_AUDIUS_HANDLE,
@@ -1003,8 +1025,11 @@
             scTracks = scTracks.filter(
               (t) => t.user && t.user.handle === MRFLEN_SC_USERNAME,
             );
+            spTracks = spTracks.filter(
+              (t) => t.user && t.user.id === MRFLEN_SPOTIFY_ID,
+            );
           }
-          let tracks = [...audiusTracks, ...scTracks];
+          let tracks = [...audiusTracks, ...scTracks, ...spTracks];
           if (currentGenre) tracks = window.filterByGenre(tracks, currentGenre);
           const sortKey = currentSort === 'latest' ? 'latest' : 'plays';
           tracks = window.sortTracks(tracks, sortKey);
@@ -1020,6 +1045,9 @@
             if (scError)
               results.innerHTML +=
                 '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ SoundCloud results unavailable.</div>';
+            if (spError)
+              results.innerHTML +=
+                '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ Spotify results unavailable.</div>';
             return;
           }
           if (!append) {
@@ -1030,13 +1058,19 @@
               html =
                 '<div class="glass" style="padding:16px;">⚠️ SoundCloud results unavailable.</div>' +
                 html;
+            if (spError)
+              html =
+                '<div class="glass" style="padding:16px;">⚠️ Spotify results unavailable.</div>' +
+                html;
             results.innerHTML = html;
           } else {
             results.innerHTML += renderTracksList(tracks, true);
           }
           attachTrackEvents();
           hasMore =
-            a.length === PAGE_LIMIT || s.length === PAGE_LIMIT;
+            a.length === PAGE_LIMIT ||
+            s.length === PAGE_LIMIT ||
+            p.length === PAGE_LIMIT;
           currentOffset += PAGE_LIMIT;
         } catch (err) {
           console.error(err);
@@ -1141,17 +1175,29 @@
         .map(normalizeAudiusTrack);
       refengineeredList.innerHTML = renderTracksList(remixes, true);
 
-      function renderNewReleases(month) {
-        let tracks = userTracks.slice();
-        if (month) tracks = window.filterByMonth(tracks, month);
-        tracks = window.sortTracks(tracks, 'latest');
+      function renderNewReleases() {
+        const tracks = window.sortTracks(userTracks.slice(), 'latest');
         newReleasesList.innerHTML = renderTracksList(tracks, true);
       }
 
-      releaseMonthInput.addEventListener('change', (e) => {
-        renderNewReleases(e.target.value);
+      function populateMonthSelect() {
+        const months = window.listMonths(userTracks);
+        monthSelect.innerHTML = '<option value="">Select month</option>';
+        months.forEach((m) => {
+          const opt = document.createElement('option');
+          opt.value = m;
+          opt.textContent = m;
+          monthSelect.appendChild(opt);
+        });
+      }
+
+      monthSelect.addEventListener('change', (e) => {
+        const m = e.target.value;
+        if (m) window.location.href = `releases.html?month=${m}`;
       });
-      renderNewReleases(releaseMonthInput.value);
+
+      renderNewReleases();
+      populateMonthSelect();
 
       performSearch(MRFLEN_AUDIUS_HANDLE);
 
