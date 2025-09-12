@@ -248,7 +248,7 @@
         autocomplete="off"
       />
       <div class="row" style="font-size:14px;gap:4px;align-items:center">
-        <input type="checkbox" id="all-artists-toggle" />
+        <input type="checkbox" id="all-artists-toggle" checked />
         <label for="all-artists-toggle">Include all artists</label>
       </div>
       <div id="genres" class="row"></div>
@@ -350,6 +350,7 @@
       <script src="auth.js"></script>
       <script src="public/queue-utils.js"></script>
       <script src="spotify.js"></script>
+      <script src="public/search-preferences.js"></script>
       <script type="module">
       /**
        * Audius REST integration for Mr.FLENs Music Finder.
@@ -518,15 +519,10 @@
 
       const LIKED_KEY = 'likedTracks';
       const PLAYLIST_KEY = 'customPlaylists';
-      const SEARCH_ALL_KEY = 'searchAllArtists';
 
       let likedTracks = [];
       let customPlaylists = [];
-      let searchAllArtists = false;
-      try {
-        searchAllArtists =
-          localStorage.getItem(SEARCH_ALL_KEY) === 'true';
-      } catch {}
+      let searchAllArtists = window.SearchPreferences.getSearchAll();
 
       function loadPreferences() {
         try {
@@ -681,9 +677,7 @@
       allArtistsToggle.checked = searchAllArtists;
       allArtistsToggle.addEventListener("change", () => {
         searchAllArtists = allArtistsToggle.checked;
-        try {
-          localStorage.setItem(SEARCH_ALL_KEY, searchAllArtists);
-        } catch {}
+        window.SearchPreferences.setSearchAll(searchAllArtists);
         if (search.value.trim()) search.dispatchEvent(new Event("input"));
       });
 
