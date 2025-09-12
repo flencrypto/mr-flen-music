@@ -1,5 +1,10 @@
-const clientId = process?.env?.SPOTIFY_CLIENT_ID;
-const clientSecret = process?.env?.SPOTIFY_CLIENT_SECRET;
+if (typeof process === "undefined") {
+  // @ts-ignore - polyfill for environments without process
+  window.process = { env: {} };
+}
+const env = (typeof process !== "undefined" && process.env) ? process.env : {};
+const clientId = env.SPOTIFY_CLIENT_ID || "";
+const clientSecret = env.SPOTIFY_CLIENT_SECRET || "";
 if (!clientId || !clientSecret) {
   console.warn("Spotify credentials not configured.");
 }
