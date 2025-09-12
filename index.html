@@ -346,6 +346,7 @@
       <script src="public/drive.js"></script>
       <script src="auth.js"></script>
       <script src="public/queue-utils.js"></script>
+      <script src="public/fetch-user-tracks-safe.js"></script>
       <script type="module">
       /**
        * Audius REST integration for Mr.FLENs Music Finder.
@@ -1134,7 +1135,10 @@
         window.location.href = url;
       };
 
-      const userTracksRaw = await fetchUserTracks(MRFLEN_AUDIUS_HANDLE);
+      const userTracksRaw = await safeFetchUserTracks(
+        fetchUserTracks,
+        MRFLEN_AUDIUS_HANDLE
+      );
       const userTracks = userTracksRaw.map(normalizeAudiusTrack);
       const remixes = userTracksRaw
         .filter((t) => t.remix_of)
