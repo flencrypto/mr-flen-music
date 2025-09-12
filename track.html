@@ -70,6 +70,21 @@
       .track-art:hover {
         transform: scale(1.05);
       }
+      .track-meta {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 4px 12px;
+      }
+      .track-meta dt {
+        font-weight: 600;
+      }
+      .track-meta dd {
+        margin: 0 0 4px 0;
+      }
+      .description {
+        margin-top: 12px;
+      }
       .fade-in {
         animation: fadeIn 0.4s ease-out both;
       }
@@ -124,6 +139,7 @@
     >
       <audio id="player" controls preload="none" style="width: 100%"></audio>
     </footer>
+    <script src="format-time.js"></script>
     <script type="module">
       const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
       const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734";
@@ -152,6 +168,29 @@
         if (!res.ok) throw new Error("sc");
         return await res.json();
       }
+      function renderMeta(t, platform) {
+        const duration =
+          platform === "soundcloud" ? (t.duration || 0) / 1000 : t.duration || 0;
+        const release = t.release_date || t.created_at || "";
+        const plays = t.play_count || t.playback_count || 0;
+        const favorites =
+          t.favorite_count || t.likes_count || t.favoritings_count || 0;
+        const link =
+          platform === "soundcloud"
+            ? t.permalink_url
+            : `https://audius.co${t.permalink}`;
+        return `
+          <dl class="track-meta fade-in">
+            <dt>Genre</dt><dd>${t.genre || "N/A"}</dd>
+            <dt>Duration</dt><dd>${formatTime(duration)}</dd>
+            <dt>Release</dt><dd>${release ? new Date(release).toLocaleDateString() : ""}</dd>
+            <dt>Plays</dt><dd>${plays}</dd>
+            <dt>Favorites</dt><dd>${favorites}</dd>
+            <dt>Link</dt><dd><a href="${link}" target="_blank" rel="noopener">Open on ${platform}</a></dd>
+          </dl>
+          ${t.description ? `<p class="description fade-in">${t.description}</p>` : ""}
+        `;
+      }
       const el = document.querySelector("#track");
       const playerContainer = document.querySelector("#player");
       const params = new URLSearchParams(window.location.search);
@@ -165,7 +204,8 @@
             el.innerHTML = `
           <img src="${art}" alt="artwork" class="track-art fade-in" />
           <h1 class="fade-in">${t.title || ""}</h1>
-          <p class="fade-in">@${t.user ? t.user.username : ""}</p>`;
+          <p class="fade-in">@${t.user ? t.user.username : ""}</p>
+          ${renderMeta(t, "soundcloud")}`;
             const o = await fetch(
               `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(t.permalink_url)}`,
             );
@@ -183,7 +223,8 @@
               el.innerHTML = `
             <img src="${art}" alt="artwork" class="track-art fade-in" />
             <h1 class="fade-in">${t.title || ""}</h1>
-            <p class="fade-in">@${handle}</p>`;
+            <p class="fade-in">@${handle}</p>
+            ${renderMeta(t, "audius")}`;
               playerContainer.src = await streamUrl(t.id);
             }
           }
