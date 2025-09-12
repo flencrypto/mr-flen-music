@@ -74,7 +74,21 @@
         border: 2px solid var(--color-secondary);
         box-shadow: 0 0 4px #000;
       }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      body.light {
+        --color-primary: #2563eb;
+        --color-secondary: #1e40af;
+        --color-bg: #f5f7fa;
+        --color-glass: rgba(0, 0, 0, 0.05);
+        --color-text: #111827;
+        --color-muted: #4b5563;
+      }
     </style>
+    <script src="public/theme.js"></script>
   </head>
   <body>
     <header
@@ -98,6 +112,13 @@
         style="text-decoration: none; color: inherit"
         >← Home</a
       >
+      <button
+        id="theme-toggle"
+        class="pill"
+        style="cursor:pointer;background:#0000;"
+      >
+        Toggle theme
+      </button>
     </header>
     <main id="playlist" class="glass" style="padding: 16px; margin: 16px">
       Loading playlist…
@@ -113,9 +134,17 @@
         margin: 16px;
       "
     >
-      <audio id="player" controls preload="none" style="width: 100%"></audio>
+      <div class="row">
+        <audio id="player" controls preload="none" style="flex:1"></audio>
+        <button id="mute-toggle" class="btn" aria-label="Mute">Mute</button>
+      </div>
     </footer>
     <script type="module">
+      const { applyTheme, getSavedTheme, toggleTheme } = window.Theme;
+      applyTheme(getSavedTheme());
+      document.getElementById("theme-toggle").addEventListener("click", () => {
+        toggleTheme();
+      });
       const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
       const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734";
       async function pickHost() {
@@ -144,12 +173,15 @@
               (t.artwork && (t.artwork["150x150"] || t.artwork["480x480"])) ||
               "";
             const handle = t.user && t.user.handle ? t.user.handle : "";
+            const plays = t.play_count || 0;
+            const likes = t.favorite_count || 0;
             return `
         <div class="glass track-card">
           <img src="${art}" width="72" height="72" loading="lazy" alt="artwork" />
           <div>
             <div style="font-weight:700">${t.title || ""}</div>
             <div style="opacity:.7">@${handle}</div>
+            <div style="font-size:12px;opacity:.7">▶ ${plays} ♥ ${likes}</div>
           </div>
           <button data-id="${t.id}" class="btn play">▶</button>
           <a href="track.html?platform=audius&id=${t.id}" class="btn">Go To Track</a>
@@ -169,6 +201,34 @@
       const trackCache = {};
       const el = document.querySelector("#playlist");
       const player = document.querySelector("#player");
+      const muteBtn = document.getElementById("mute-toggle");
+
+      function updateMute() {
+        muteBtn.textContent = player.muted ? "Unmute" : "Mute";
+      }
+
+      muteBtn.addEventListener("click", () => {
+        player.muted = !player.muted;
+        updateMute();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
+        if (e.code === "Space") {
+          e.preventDefault();
+          if (player.paused) {
+            player.play();
+          } else {
+            player.pause();
+          }
+        }
+        if (e.key === "m" || e.key === "M") {
+          player.muted = !player.muted;
+          updateMute();
+        }
+      });
+
+      updateMute();
       const params = new URLSearchParams(window.location.search);
       const id = params.get("id");
       if (id) {
