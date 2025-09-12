@@ -15,7 +15,15 @@
         return (b.plays || 0) - (a.plays || 0);
       }
       if (criterion === 'latest') {
-        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        const parseDate = (t) =>
+          new Date(
+            t.createdAt ||
+              t.created_at ||
+              t.releaseDate ||
+              t.release_date ||
+              0
+          );
+        return parseDate(b) - parseDate(a);
       }
       return (a.title || '').localeCompare(b.title || '');
     });

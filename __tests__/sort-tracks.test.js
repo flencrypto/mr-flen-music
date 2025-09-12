@@ -37,4 +37,15 @@ describe('sortTracks', () => {
     );
     expect(sorted.map(t => t.title)).toEqual(['New', 'Old']);
   });
+
+  test('sorts by latest when using created_at field', () => {
+    const sorted = sortTracks(
+      [
+        { title: 'Old', created_at: '2020-01-01' },
+        { title: 'New', created_at: '2024-01-01' }
+      ],
+      'latest'
+    );
+    expect(sorted.map(t => t.title)).toEqual(['New', 'Old']);
+  });
 });
