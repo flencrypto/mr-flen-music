@@ -5,6 +5,7 @@ const {
   adjustIndexOnRemove,
 } = require('../public/queue-utils');
 
+
 describe('queue-utils', () => {
   test('addToQueue appends tracks', () => {
     const q = addToQueue([], { id: 1 });
@@ -31,4 +32,5 @@ describe('queue-utils', () => {
   test('adjustIndexOnRemove unchanged when removed after current', () => {
     expect(adjustIndexOnRemove(1, 2)).toBe(1);
   });
+
 });

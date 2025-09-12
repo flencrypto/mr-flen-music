@@ -13,11 +13,12 @@
   <!-- Feather Icons -->
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-  
+
   <!-- Animation -->
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/animejs/lib/anime.iife.min.js"></script>
+  <script src="theme.js"></script>
   
   <style>
     :root {
@@ -29,6 +30,23 @@
       background-color: var(--bg-0);
       color: var(--text);
       font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    body.light {
+      --bg-0: #f5f7fa;
+      --panel: rgba(255,255,255,0.7);
+      --text: #111827;
+      --muted: #4b5563;
+    }
+
+    body.light::before {
+      background:
+        linear-gradient(to bottom, rgba(255,255,255,.6), rgba(255,255,255,.92)),
+        url('https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg') center/cover no-repeat;
+    }
+
+    body.light .glass-panel {
+      border: 1px solid rgba(0,0,0,0.08);
     }
     
     body::before {
@@ -552,9 +570,25 @@
           </button>
         </div>
       </div>
+  </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden">
+    <div id="settingsPanel" class="glass-panel p-6 w-80 opacity-0">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-medium">Settings</h2>
+        <button id="closeSettings" class="p-1 rounded hover:bg-white/10">
+          <i data-feather="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <label class="flex items-center justify-between">
+        <span class="text-sm">Light Theme</span>
+        <input id="themeToggle" type="checkbox" class="w-4 h-4">
+      </label>
     </div>
   </div>
-  
+
   <!-- Config -->
   <script id="config" type="application/json">
     {
@@ -580,6 +614,48 @@
         easing: 'ease-out',
         once: true
       });
+
+      // Theme setup
+      if (window.Theme) {
+        const { applyTheme, getSavedTheme, toggleTheme } = window.Theme;
+        applyTheme(getSavedTheme());
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+          themeToggle.checked = getSavedTheme() === 'light';
+          themeToggle.addEventListener('change', () => {
+            const mode = toggleTheme();
+            themeToggle.checked = mode === 'light';
+          });
+        }
+      }
+
+      // Settings modal animations
+      const settingsModal = document.getElementById('settingsModal');
+      const settingsPanel = document.getElementById('settingsPanel');
+      document.getElementById('settingsBtn').addEventListener('click', () => {
+        settingsModal.classList.remove('hidden');
+        anime({
+          targets: '#settingsPanel',
+          opacity: [0, 1],
+          translateY: [-20, 0],
+          duration: 300,
+          easing: 'easeOutQuad'
+        });
+      });
+      document.getElementById('closeSettings').addEventListener('click', closeSettings);
+      settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) closeSettings();
+      });
+      function closeSettings() {
+        anime({
+          targets: '#settingsPanel',
+          opacity: [1, 0],
+          translateY: [0, -20],
+          duration: 200,
+          easing: 'easeInQuad',
+          complete: () => settingsModal.classList.add('hidden')
+        });
+      }
       
       // Player expansion toggle
       document.getElementById('expandPlayer').addEventListener('click', () => {
