@@ -94,7 +94,7 @@
         opt.textContent = m;
         monthSelect.appendChild(opt);
       });
-      const month = selectedMonth || months[0] || "";
+      const month = selectedMonth || months[months.length - 1] || "";
       if (month) monthSelect.value = month;
       function render(monthVal) {
         let tracks = window.filterByMonth(userTracks, monthVal);
