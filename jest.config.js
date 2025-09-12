@@ -1,4 +1,4 @@
 module.exports = {
-  testEnvironment: 'jsdom',
-  testPathIgnorePatterns: ['/mobile/']
+  testEnvironment: "jsdom",
+  testPathIgnorePatterns: ["/mobile/"],
 };

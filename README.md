@@ -6,6 +6,11 @@ A sleek, HTML-only music browser that unifies **Audius** and **SoundCloud** trac
 - Unified search (Audius + SoundCloud) with playback restricted to Mr.FLEN tracks.
 - Sticky player bar powered by the MediaSession API.
 - Installable PWA with offline shell caching.
+- Light/dark theme toggle across pages with preference stored in local storage.
+- Player supports mute toggle and keyboard shortcuts for play/pause and mute.
+- ReFLENgineered section listing all remix tracks.
+- New Releases section filterable by month, showing plays and likes per track.
+- Track lists display play and like counts throughout the UI.
 
 ## Getting started
 

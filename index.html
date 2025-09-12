@@ -183,6 +183,7 @@
     </style>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+    <script src="public/theme.js"></script>
   </head>
   <body>
     <div id="fb-root"></div>
@@ -209,6 +210,7 @@
         </button>
         <button id="backup-btn" class="pill" style="cursor:pointer;background:#0000;display:none;">Backup</button>
         <button id="restore-btn" class="pill" style="cursor:pointer;background:#0000;">Restore</button>
+        <button id="theme-toggle" class="pill" style="cursor:pointer;background:#0000;">Toggle theme</button>
       </div>
       <nav class="row" style="gap:8px;margin-top:8px" aria-label="Social links">
         <a
@@ -273,7 +275,21 @@
       </div>
     </div>
 
-    <main id="results" class="grid" style="padding: 0 16px 140px"></main>
+    <main class="grid" style="padding: 0 16px 140px">
+      <section id="refengineered-section">
+        <h2>ReFLENgineered</h2>
+        <div id="refengineered-list" class="grid"></div>
+      </section>
+      <section id="new-releases-section">
+        <h2>New Releases</h2>
+        <input type="month" id="release-month" />
+        <div id="new-releases-list" class="grid"></div>
+      </section>
+      <section id="search-section">
+        <h2>Search Results</h2>
+        <div id="results" class="grid"></div>
+      </section>
+    </main>
 
     <footer
       class="glass"
@@ -297,7 +313,10 @@
           </div>
         </div>
       <div id="playerContainer">
-        <audio id="player" controls preload="none" style="width: 100%"></audio>
+        <div class="row">
+          <audio id="player" controls preload="none" style="flex:1"></audio>
+          <button id="mute-toggle" class="btn" aria-label="Mute" style="white-space:nowrap;">Mute</button>
+        </div>
         <div id="progressContainer" class="row" style="display:none">
           <span id="currentTime">0:00</span>
           <input type="range" id="progressBar" min="0" value="0" />
@@ -342,6 +361,12 @@
       const MRFLEN_AUDIUS_HANDLE = "Mr.FLEN";
       const MRFLEN_SC_USERNAME = "mr-flen";
       const SOUNDCLOUD_CLIENT_ID = "YOUR_SOUNDCLOUD_API_KEY";
+      // Theme setup
+      const { applyTheme, getSavedTheme, toggleTheme } = window.Theme;
+      applyTheme(getSavedTheme());
+      document.getElementById("theme-toggle").addEventListener("click", () => {
+        toggleTheme();
+      });
       // pagination state for infinite scrolling
       let currentQuery = "";
       let currentOffset = 0;
@@ -401,6 +426,24 @@
         return (json.data || []).map(normalizeAudiusTrack);
       }
 
+      async function fetchUserId(handle) {
+        const host = await pickHost();
+        const url = `${host}/v1/users/handle/${encodeURIComponent(handle)}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+        const res = await fetch(url, { headers: { Accept: 'application/json' } });
+        const json = await res.json();
+        return json.data && json.data.id;
+      }
+
+      async function fetchUserTracks(handle) {
+        const userId = await fetchUserId(handle);
+        if (!userId) return [];
+        const host = await pickHost();
+        const url = `${host}/v1/users/${userId}/tracks?limit=200&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+        const res = await fetch(url, { headers: { Accept: 'application/json' } });
+        const json = await res.json();
+        return json.data || [];
+      }
+
       async function trendingPlaylists() {
         const host = await pickHost();
         const url = `${host}/v1/playlists/trending?limit=5&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
@@ -447,6 +490,7 @@
             (t.artwork && (t.artwork["150x150"] || t.artwork["480x480"])) || "",
           user: { handle: t.user && t.user.handle ? t.user.handle : "" },
           plays: t.play_count || 0,
+          likes: t.favorite_count || 0,
           genre: t.genre || '',
           createdAt: t.release_date || t.created_at || '',
         };
@@ -461,6 +505,7 @@
           permalink_url: t.permalink_url,
           user: { handle: t.user && t.user.username ? t.user.username : "" },
           plays: t.playback_count || 0,
+          likes: t.likes_count || t.favoritings_count || 0,
           genre: t.genre || '',
           createdAt: t.created_at || '',
         };
@@ -530,7 +575,11 @@
       /** UI wiring **/
 
       const results = document.querySelector("#results");
+      const refengineeredList = document.querySelector("#refengineered-list");
+      const newReleasesList = document.querySelector("#new-releases-list");
+      const releaseMonthInput = document.getElementById("release-month");
       let audioPlayer = document.querySelector("#player");
+      const muteBtn = document.getElementById("mute-toggle");
       const search = document.querySelector("#search");
       const allArtistsToggle = document.querySelector("#all-artists-toggle");
       const login = document.querySelector("#login");
@@ -561,6 +610,34 @@
       let currentTimeEl;
       let durationEl;
 
+      function updateMuteButton() {
+        if (!audioPlayer) return;
+        muteBtn.textContent = audioPlayer.muted ? "Unmute" : "Mute";
+      }
+
+      muteBtn.addEventListener("click", () => {
+        if (!audioPlayer) return;
+        audioPlayer.muted = !audioPlayer.muted;
+        updateMuteButton();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
+        if (!audioPlayer) return;
+        if (e.code === "Space") {
+          e.preventDefault();
+          if (audioPlayer.paused) {
+            audioPlayer.play();
+          } else {
+            audioPlayer.pause();
+          }
+        }
+        if (e.key === "m" || e.key === "M") {
+          audioPlayer.muted = !audioPlayer.muted;
+          updateMuteButton();
+        }
+      });
+
       function cacheProgressEls() {
         progressContainer = document.getElementById("progressContainer");
         progressBar = document.getElementById("progressBar");
@@ -571,6 +648,7 @@
       cacheProgressEls();
 
       function attachPlayer(player) {
+        audioPlayer = player;
         if (!player) {
           if (progressContainer) progressContainer.style.display = "none";
           return;
@@ -590,6 +668,7 @@
         progressBar.oninput = (e) => {
           player.currentTime = e.target.value;
         };
+        updateMuteButton();
       }
 
       attachPlayer(null);
@@ -798,6 +877,7 @@
         <div>
           <div style="font-weight:700">${t.title || ""}</div>
           <div style="opacity:.7">@${t.user.handle} ${badge}</div>
+          <div style="font-size:12px;opacity:.7">▶ ${t.plays} ♥ ${t.likes}</div>
         </div>
         ${buttons.join("")}
       </div>`;
@@ -1053,6 +1133,25 @@
         )}&response_type=token&scope=user.info.basic&state=tiktok`;
         window.location.href = url;
       };
+
+      const userTracksRaw = await fetchUserTracks(MRFLEN_AUDIUS_HANDLE);
+      const userTracks = userTracksRaw.map(normalizeAudiusTrack);
+      const remixes = userTracksRaw
+        .filter((t) => t.remix_of)
+        .map(normalizeAudiusTrack);
+      refengineeredList.innerHTML = renderTracksList(remixes, true);
+
+      function renderNewReleases(month) {
+        let tracks = userTracks.slice();
+        if (month) tracks = window.filterByMonth(tracks, month);
+        tracks = window.sortTracks(tracks, 'latest');
+        newReleasesList.innerHTML = renderTracksList(tracks, true);
+      }
+
+      releaseMonthInput.addEventListener('change', (e) => {
+        renderNewReleases(e.target.value);
+      });
+      renderNewReleases(releaseMonthInput.value);
 
       performSearch(MRFLEN_AUDIUS_HANDLE);
 
