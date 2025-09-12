@@ -360,12 +360,17 @@
        * edit the CSS in the <style> block above.
        */
 
+      if (typeof process === "undefined") {
+        window.process = { env: {} };
+      }
+      const env =
+        typeof process !== "undefined" && process.env ? process.env : {};
       const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
       const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734"; // public, read-only (ok in client)
       const MRFLEN_AUDIUS_HANDLE = "Mr.FLEN";
       const MRFLEN_SC_USERNAME = "mr-flen";
       const SOUNDCLOUD_CLIENT_ID = "YOUR_SOUNDCLOUD_API_KEY";
-      const MRFLEN_SPOTIFY_ID = process?.env?.MRFLEN_SPOTIFY_ID || "";
+      const MRFLEN_SPOTIFY_ID = env.MRFLEN_SPOTIFY_ID || "";
       // Theme setup
       const { applyTheme, getSavedTheme, toggleTheme } = window.Theme;
       applyTheme(getSavedTheme());
@@ -1135,33 +1140,33 @@
         window.location.origin +
         window.location.pathname +
         window.location.search;
-      instaLoginBtn.onclick = () => {
-        const clientId = process?.env?.INSTAGRAM_CLIENT_ID;
-        const redirectUri = buildRedirectUri();
+        instaLoginBtn.onclick = () => {
+          const clientId = env.INSTAGRAM_CLIENT_ID || "";
+          const redirectUri = buildRedirectUri();
         const url = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
           redirectUri
         )}&scope=user_profile&response_type=token&state=instagram`;
         window.location.href = url;
       };
-      xLoginBtn.onclick = () => {
-        const clientId = process?.env?.X_CLIENT_ID;
-        const redirectUri = buildRedirectUri();
+        xLoginBtn.onclick = () => {
+          const clientId = env.X_CLIENT_ID || "";
+          const redirectUri = buildRedirectUri();
         const url = `https://twitter.com/i/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(
           redirectUri
         )}&scope=tweet.read%20users.read&state=x`;
         window.location.href = url;
       };
-      snapLoginBtn.onclick = () => {
-        const clientId = process?.env?.SNAPCHAT_CLIENT_ID;
-        const redirectUri = buildRedirectUri();
+        snapLoginBtn.onclick = () => {
+          const clientId = env.SNAPCHAT_CLIENT_ID || "";
+          const redirectUri = buildRedirectUri();
         const url = `https://accounts.snapchat.com/accounts/oauth2/auth?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(
           redirectUri
         )}&scope=snapchat_marketing_api&state=snapchat`;
         window.location.href = url;
       };
-      tiktokLoginBtn.onclick = () => {
-        const clientId = process?.env?.TIKTOK_CLIENT_ID;
-        const redirectUri = buildRedirectUri();
+        tiktokLoginBtn.onclick = () => {
+          const clientId = env.TIKTOK_CLIENT_ID || "";
+          const redirectUri = buildRedirectUri();
         const url = `https://www.tiktok.com/auth/authorize?client_key=${clientId}&redirect_uri=${encodeURIComponent(
           redirectUri
         )}&response_type=token&scope=user.info.basic&state=tiktok`;
