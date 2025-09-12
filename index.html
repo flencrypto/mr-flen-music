@@ -524,7 +524,8 @@
         const savePlaylistBtn = document.getElementById("savePlaylistBtn");
         const playlistList = document.getElementById("playlistList");
         const genresEl = document.querySelector("#genres");
-        const { addToQueue, removeFromQueue, moveInQueue } = queueUtils;
+        const { addToQueue, removeFromQueue, moveInQueue, adjustIndexOnRemove } =
+          queueUtils;
       let progressContainer;
       let progressBar;
       let currentTimeEl;
@@ -674,6 +675,7 @@
           if (Number.isNaN(idx)) return;
           if (e.target.classList.contains('remove')) {
             queue = removeFromQueue(queue, idx);
+            currentIndex = adjustIndexOnRemove(currentIndex, idx);
             if (currentIndex >= queue.length) currentIndex = queue.length - 1;
             updateQueue();
           } else if (e.target.classList.contains('up')) {

@@ -32,5 +32,9 @@
     return arr;
   }
 
-  return { addToQueue, removeFromQueue, moveInQueue };
+  function adjustIndexOnRemove(currentIndex, removedIndex) {
+    return removedIndex <= currentIndex ? currentIndex - 1 : currentIndex;
+  }
+
+  return { addToQueue, removeFromQueue, moveInQueue, adjustIndexOnRemove };
 });
