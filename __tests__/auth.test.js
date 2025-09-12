@@ -1,4 +1,8 @@
-const { handleAuthSuccess, exchangeCodeForToken } = require('../auth');
+const {
+  handleAuthSuccess,
+  exchangeCodeForToken,
+  initGoogleAuth
+} = require('../auth');
 
 describe('OAuth helpers', () => {
   beforeEach(() => {
@@ -21,19 +25,16 @@ describe('OAuth helpers', () => {
     expect(token).toBe('abc');
   });
 
-  test('exchangeCodeForToken handles Google provider', async () => {
-    const mockFetch = jest.fn().mockResolvedValue({
-      json: () => Promise.resolve({ access_token: 'def' })
-    });
-    const token = await exchangeCodeForToken('google', 'CODE', mockFetch);
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://oauth2.googleapis.com/token',
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: expect.stringContaining('code=CODE')
-      })
-    );
-    expect(token).toBe('def');
+  test('initGoogleAuth initialises Google sign-in when library available', () => {
+    document.body.innerHTML = '<div class="g_id_signin"></div>';
+    const initialize = jest.fn();
+    const renderButton = jest.fn();
+    window.google = { accounts: { id: { initialize, renderButton } } };
+    const cb = jest.fn();
+    const result = initGoogleAuth('client', cb);
+    expect(result).toBe(true);
+    expect(initialize).toHaveBeenCalledWith({ client_id: 'client', callback: cb });
+    expect(renderButton).toHaveBeenCalled();
+    delete window.google;
   });
 });

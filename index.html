@@ -175,6 +175,7 @@
         align-items: center;
         justify-content: center;
         background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
       }
       .hidden {
         display: none;
@@ -264,11 +265,7 @@
     <div id="login-modal" class="modal hidden">
       <div class="glass" style="padding:24px;max-width:320px;width:100%;">
         <h2>Sign in</h2>
-        <div id="g_id_onload"
-             data-client_id="GOOGLE_CLIENT_ID"
-             data-context="signin"
-             data-callback="onGoogleSignIn"></div>
-        <div class="g_id_signin" data-type="standard" data-size="large"></div>
+        <div class="g_id_signin"></div>
         <div id="fb-login-btn" class="btn" style="margin-top:8px;">Login with Facebook</div>
         <div id="insta-login-btn" class="btn" style="margin-top:8px;">Login with Instagram</div>
         <div id="x-login-btn" class="btn" style="margin-top:8px;">Login with X</div>
@@ -593,6 +590,9 @@
       const snapLoginBtn = document.querySelector("#snap-login-btn");
       const tiktokLoginBtn = document.querySelector("#tiktok-login-btn");
       const closeLogin = document.querySelector("#close-login");
+      (function initGoogle() {
+        if (!initGoogleAuth()) setTimeout(initGoogle, 100);
+      })();
         const nextBtn = document.querySelector("#next");
         const shuffleBtn = document.querySelector("#shuffle");
         const queueLabel = document.querySelector("#queueLabel");

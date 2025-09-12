@@ -26,10 +26,11 @@ async function exchangeCodeForToken(provider, code, fetchImpl = fetch) {
 }
 
 if (typeof window !== "undefined") {
+
   window.handleAuthSuccess = handleAuthSuccess;
   window.exchangeCodeForToken = exchangeCodeForToken;
+  window.initGoogleAuth = initGoogleAuth;
 }
 
 if (typeof module !== "undefined") {
   module.exports = { handleAuthSuccess, exchangeCodeForToken };
-}
