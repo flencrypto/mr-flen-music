@@ -2,9 +2,10 @@
   if (typeof module === 'object' && module.exports) {
     module.exports = factory();
   } else {
-    const { filterByGenre, filterByMonth } = factory();
+    const { filterByGenre, filterByMonth, listMonths } = factory();
     root.filterByGenre = filterByGenre;
     root.filterByMonth = filterByMonth;
+    root.listMonths = listMonths;
   }
 })(this, function () {
   function filterByGenre(tracks, genre) {
@@ -26,5 +27,18 @@
     });
   }
 
-  return { filterByGenre, filterByMonth };
+  function listMonths(tracks) {
+    if (!Array.isArray(tracks)) return [];
+    const set = new Set();
+    tracks.forEach((t) => {
+      if (!t.createdAt) return;
+      const d = new Date(t.createdAt);
+      if (Number.isNaN(d.getTime())) return;
+      const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      set.add(m);
+    });
+    return Array.from(set).sort().reverse();
+  }
+
+  return { filterByGenre, filterByMonth, listMonths };
 });

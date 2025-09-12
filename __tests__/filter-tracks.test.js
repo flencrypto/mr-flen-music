@@ -1,4 +1,4 @@
-const { filterByGenre, filterByMonth } = require('../public/filter-tracks');
+const { filterByGenre, filterByMonth, listMonths } = require('../public/filter-tracks');
 
 describe('filterByGenre', () => {
   const tracks = [
@@ -35,5 +35,19 @@ describe('filterByMonth', () => {
     const res = filterByMonth(tracks);
     expect(res).toHaveLength(2);
     expect(res).not.toBe(tracks);
+  });
+});
+
+describe('listMonths', () => {
+  const tracks = [
+    { createdAt: '2024-02-10' },
+    { createdAt: '2024-01-01' },
+    { createdAt: '2024-02-20' },
+    { createdAt: 'invalid' },
+  ];
+
+  test('extracts unique months sorted desc', () => {
+    const months = listMonths(tracks);
+    expect(months).toEqual(['2024-02', '2024-01']);
   });
 });

@@ -25,12 +25,23 @@ async function exchangeCodeForToken(provider, code, fetchImpl = fetch) {
   return data.access_token;
 }
 
-if (typeof window !== "undefined") {
+function initGoogleAuth(clientId, callback) {
+  if (!clientId || typeof callback !== "function") return false;
+  if (!window.google || !window.google.accounts?.id) return false;
+  window.google.accounts.id.initialize({ client_id: clientId, callback });
+  const btn = document.querySelector(".g_id_signin");
+  if (btn) window.google.accounts.id.renderButton(btn, {});
+  return true;
+}
 
+if (typeof window !== "undefined") {
   window.handleAuthSuccess = handleAuthSuccess;
   window.exchangeCodeForToken = exchangeCodeForToken;
-  window.initGoogleAuth = initGoogleAuth;
+  if (typeof initGoogleAuth === "function") {
+    window.initGoogleAuth = initGoogleAuth;
+  }
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { handleAuthSuccess, exchangeCodeForToken };
+  module.exports = { handleAuthSuccess, exchangeCodeForToken, initGoogleAuth };
+}
