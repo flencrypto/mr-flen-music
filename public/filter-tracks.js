@@ -29,15 +29,21 @@
 
   function listMonths(tracks) {
     if (!Array.isArray(tracks)) return [];
-    const set = new Set();
-    tracks.forEach((t) => {
-      if (!t.createdAt) return;
-      const d = new Date(t.createdAt);
-      if (Number.isNaN(d.getTime())) return;
-      const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      set.add(m);
-    });
-    return Array.from(set).sort().reverse();
+    const dates = tracks
+      .map((t) => new Date(t.createdAt))
+      .filter((d) => !Number.isNaN(d.getTime()))
+      .sort((a, b) => a - b);
+    if (!dates.length) return [];
+    const first = new Date(dates[0].getFullYear(), dates[0].getMonth(), 1);
+    const now = new Date();
+    const months = [];
+    const current = new Date(first);
+    while (current <= now) {
+      const m = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+      months.push(m);
+      current.setMonth(current.getMonth() + 1);
+    }
+    return months;
   }
 
   return { filterByGenre, filterByMonth, listMonths };

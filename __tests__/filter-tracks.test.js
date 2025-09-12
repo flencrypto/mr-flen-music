@@ -46,8 +46,16 @@ describe('listMonths', () => {
     { createdAt: 'invalid' },
   ];
 
-  test('extracts unique months sorted desc', () => {
+  beforeAll(() => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-03-01'));
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
+  test('lists months from first release to current month', () => {
     const months = listMonths(tracks);
-    expect(months).toEqual(['2024-02', '2024-01']);
+    expect(months).toEqual(['2024-01', '2024-02', '2024-03']);
   });
 });
