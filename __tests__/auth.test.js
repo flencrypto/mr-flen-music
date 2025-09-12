@@ -1,8 +1,9 @@
+const auth = require('../auth');
 const {
   handleAuthSuccess,
   exchangeCodeForToken,
-  initGoogleAuth
-} = require('../auth');
+  initGoogleAuth,
+} = auth;
 
 describe('OAuth helpers', () => {
   beforeEach(() => {
@@ -25,7 +26,7 @@ describe('OAuth helpers', () => {
     expect(token).toBe('abc');
   });
 
-  test('initGoogleAuth initialises Google sign-in when library available', () => {
+  test('initGoogleAuth initialises Google sign-in when library available with explicit params', () => {
     document.body.innerHTML = '<div class="g_id_signin"></div>';
     const initialize = jest.fn();
     const renderButton = jest.fn();
@@ -36,5 +37,23 @@ describe('OAuth helpers', () => {
     expect(initialize).toHaveBeenCalledWith({ client_id: 'client', callback: cb });
     expect(renderButton).toHaveBeenCalled();
     delete window.google;
+  });
+
+  test('initGoogleAuth uses global defaults when no params provided', () => {
+    document.body.innerHTML = '<div class="g_id_signin"></div>';
+    const initialize = jest.fn();
+    const renderButton = jest.fn();
+    window.google = { accounts: { id: { initialize, renderButton } } };
+    window.GOOGLE_CLIENT_ID = 'g-id';
+    const result = initGoogleAuth();
+    expect(result).toBe(true);
+    expect(initialize).toHaveBeenCalledWith({ client_id: 'g-id', callback: expect.any(Function) });
+    const cb = initialize.mock.calls[0][0].callback;
+    document.body.innerHTML = '<div id="login-modal" class="modal"></div>';
+    cb({ credential: 'tok' });
+    expect(localStorage.getItem('google_token')).toBe('tok');
+    expect(renderButton).toHaveBeenCalled();
+    delete window.google;
+    delete window.GOOGLE_CLIENT_ID;
   });
 });

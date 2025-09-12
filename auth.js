@@ -25,8 +25,11 @@ async function exchangeCodeForToken(provider, code, fetchImpl = fetch) {
   return data.access_token;
 }
 
-function initGoogleAuth(clientId, callback) {
-  if (!window?.google?.accounts?.id) return false;
+function initGoogleAuth(
+  clientId = window.GOOGLE_CLIENT_ID,
+  callback = (res) => handleAuthSuccess("google", res.credential),
+) {
+  if (!window?.google?.accounts?.id || !clientId || !callback) return false;
   const { initialize, renderButton } = window.google.accounts.id;
   initialize({ client_id: clientId, callback });
   const btn = document.querySelector(".g_id_signin");
