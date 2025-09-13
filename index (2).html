@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Mr.FLEN's Music Finder</title>
+  <meta name="theme-color" content="#0b1017">
+  <link rel="manifest" href="manifest.webmanifest">
+  
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Feather Icons -->
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  
+  <!-- Animation -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs/lib/anime.iife.min.js"></script>
+  
+  <style>
+    :root {
+      --bg-0:#0b1017; --panel:rgba(18,24,33,.72); --text:#e6eefc; --muted:#98a2b3;
+      --brand:#5AC8FA; --accent:#8b5cf6; --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    
+    body {
+      background-color: var(--bg-0);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(to bottom, rgba(7,10,14,.6), rgba(7,10,14,.92)),
+        url('https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg') center/cover no-repeat;
+      z-index: -1;
+    }
+    
+    .glass-panel {
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .track-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    
+    .player-gradient {
+      background: linear-gradient(90deg, rgba(92,200,250,0.1), rgba(139,92,246,0.1));
+    }
+    
+    .search-input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(92,200,250,0.25);
+    }
+    
+    .platform-badge-audius {
+      background: rgba(114,137,218,0.15);
+      color: #7289DA;
+    }
+    
+    .platform-badge-sc {
+      background: rgba(255,87,25,0.15);
+      color: #ff5719;
+    }
+    
+    .progress-bar {
+      height: 4px;
+      transition: width 0.3s ease;
+      background: var(--brand);
+    }
+  </style>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#5AC8FA',
+            accent: '#8b5cf6',
+            muted: '#98a2b3',
+            bg0: '#0b1017',
+            panel: 'rgba(18,24,33,0.7)'
+          },
+          borderRadius: {
+            xl: '16px'
+          },
+          boxShadow: {
+            glass: '0 10px 30px rgba(0,0,0,.35)'
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Google Sign-In API -->
+  <meta name="google-signin-client_id" content="YOUR_ACTUAL_GOOGLE_CLIENT_ID_HERE">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Top Navigation -->
+  <header class="p-4 flex items-center justify-between gap-4 sticky top-0 z-10 backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="glass-panel w-10 h-10 rounded-full flex items-center justify-center bg-brand/20">
+        <i data-feather="music" class="text-brand w-5 h-5"></i>
+      </div>
+      <h1 class="text-xl font-bold bg-gradient-to-r from-brand to-accent bg-clip-text text-transparent tracking-tighter">MR.FLEN</h1>
+    </div>
+    
+    <div class="flex-1 max-w-xl">
+      <div class="glass-panel flex items-center px-3">
+        <i data-feather="search" class="text-muted w-4 h-4"></i>
+        <input 
+          id="q"
+          type="search"
+          placeholder="Search music..."
+          class="search-input w-full bg-transparent py-3 px-3 outline-none text-sm"
+          aria-label="Search for music"
+          autocomplete="off"
+        />
+        <div class="hidden md:flex items-center rounded bg-bg0 px-1.5 py-0.5 text-xs text-muted">
+          ⌘K
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <div id="authButtons" class="flex items-center gap-2">
+        <button id="connectSC" class="glass-panel flex items-center gap-1 px-3 py-2 text-sm hover:bg-panel/80 transition">
+          <i data-feather="link" class="w-4 h-4"></i>
+          <span>Connect SoundCloud</span>
+        </button>
+        <button id="connectGoogle" class="glass-panel flex items-center gap-1 px-3 py-2 text-sm hover:bg-panel/80 transition">
+          <i data-feather="log-in" class="w-4 h-4"></i>
+          <span>Sign in with Google</span>
+        </button>
+        <button id="connectInstagram" class="glass-panel flex items-center gap-1 px-3 py-2 text-sm hover:bg-panel/80 transition">
+          <i data-feather="instagram" class="w-4 h-4"></i>
+          <span>Connect Instagram</span>
+        </button>
+      </div>
+      <button id="libraryBtn" class="glass-panel px-3 py-2 hover:bg-panel/80 transition">
+        <i data-feather="list" class="w-5 h-5"></i>
+      </button>
+      <button id="settingsBtn" class="glass-panel px-3 py-2 hover:bg-panel/80 transition">
+        <i data-feather="settings" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 pb-24 max-w-7xl mx-auto w-full">
+    <!-- Hero Section -->
+    <section 
+      class="glass-panel col-span-1 lg:col-span-2 overflow-hidden relative" 
+      data-aos="fade-right"
+      aria-labelledby="heroTitle"
+    >
+      <div class="absolute inset-0 bg-gradient-to-b from-black/40 to-black/80 z-0"></div>
+      <img 
+        src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg" 
+        alt="Midnight Vibes by Mr. FLEN"
+        class="absolute inset-0 w-full h-full object-cover z-0"
+      >
+      
+      <div class="relative z-10 p-6 flex flex-col justify-end h-96">
+        <div 
+          class="inline-block bg-black/40 px-3 py-1 rounded-full text-xs uppercase tracking-wider text-brand mb-3"
+          data-aos="fade-up"
+        >
+          Now Trending
+        </div>
+        <h1 id="heroTitle" class="text-3xl md:text-4xl font-bold" data-aos="fade-up" data-aos-delay="100">Midnight Vibes</h1>
+        <p class="text-muted" data-aos="fade-up" data-aos-delay="200">MR.FLEN</p>
+        
+        <div class="mt-6 flex items-center gap-4" data-aos="fade-up" data-aos-delay="300">
+          <button class="glass-panel w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-brand/10 transition">
+            <i data-feather="play" class="w-6 h-6 text-white"></i>
+          </button>
+          <button class="glass-panel px-4 py-2 flex items-center gap-2 text-sm hover:bg-panel/80 transition">
+            <i data-feather="plus" class="w-4 h-4"></i>
+            Add to Library
+          </button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Library Sidebar -->
+    <aside 
+      class="glass-panel" 
+      aria-label="Library"
+      data-aos="fade-left"
+    >
+      <div class="p-4 border-b border-white/5">
+        <h2 class="font-medium">Library</h2>
+      </div>
+      
+      <div class="tabs flex border-b border-white/5">
+        <button class="tab py-3 px-4 flex-1 text-center text-sm hover:bg-white/5 border-b-2 border-brand font-medium">
+          My Tracks
+        </button>
+        <button class="tab py-3 px-4 flex-1 text-center text-sm hover:bg-white/5 text-muted">
+          Liked
+        </button>
+        <button class="tab py-3 px-4 flex-1 text-center text-sm hover:bg-white/5 text-muted">
+          Reposts
+        </button>
+      </div>
+      
+      <ul id="libraryList" class="list p-2 space-y-1">
+        <li class="track-item glass-panel px-3 py-2 rounded-xl flex items-center gap-3 cursor-pointer group">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-brand/30 to-accent/30 overflow-hidden">
+            <img 
+              src="https://audius-content-4.cultur3stake.com/content/QmRfS6YgY3sM3b4Xhq2q9uS1XJ2xVdR5PcJz1KJj7yUZx2J/1400x1400.jpg" 
+              alt="Track artwork"
+              class="w-full h-full object-cover"
+            >
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium truncate">Neon Dreams</div>
+            <div class="text-xs text-muted truncate">MR.FLEN</div>
+          </div>
+          <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full group-hover:opacity-100 opacity-0 transition-opacity">
+            <i data-feather="play" class="w-4 h-4"></i>
+          </button>
+        </li>
+        
+        <li class="track-item glass-panel px-3 py-2 rounded-xl flex items-center gap-3 cursor-pointer group">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-brand/30 to-accent/30 flex items-center justify-center">
+            <i data-feather="music" class="text-brand w-5 h-5"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium truncate">Synthetic Echoes</div>
+            <div class="text-xs text-muted truncate">MR.FLEN</div>
+          </div>
+          <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full group-hover:opacity-100 opacity-0 transition-opacity">
+            <i data-feather="play" class="w-4 h-4"></i>
+          </button>
+        </li>
+        
+        <li class="track-item glass-panel px-3 py-2 rounded-xl flex items-center gap-3 cursor-pointer group">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-brand/30 to-accent/30 overflow-hidden">
+            <img 
+              src="https://audius-content-1.cultur3stake.com/content/QmXfV8YJj3Df1g5mXa1mFgK2PvV3XqJ8qW7jU9cFpG6zG3T/1400x1400.jpg" 
+              alt="Track artwork"
+              class="w-full h-full object-cover"
+            >
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium truncate">Digital Sunrise</div>
+            <div class="text-xs text-muted truncate">MR.FLEN</div>
+          </div>
+          <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full group-hover:opacity-100 opacity-0 transition-opacity">
+            <i data-feather="play" class="w-4 h-4"></i>
+          </button>
+        </li>
+      </ul>
+    </aside>
+    
+    <!-- Trending Tracks -->
+    <section 
+      class="glass-panel col-span-1 lg:col-span-3" 
+      data-aos="fade-up"
+      aria-labelledby="trendingTitle"
+    >
+      <div class="p-4 border-b border-white/5">
+        <h2 id="trendingTitle" class="font-medium flex items-center gap-2">
+          <i data-feather="trending-up" class="text-brand w-5 h-5"></i>
+          Trending on Audius
+        </h2>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+        <div class="glass-panel rounded-xl overflow-hidden group" data-aos="zoom-in" data-aos-delay="100">
+          <div class="aspect-square relative">
+            <img 
+              src="https://audius-content-9.cultur3stake.com/content/QmRfS6YgY3sM3b4Xhq2q9uS1XJ2xVdR5PcJz1KJj7yUZx2J/480x480.jpg" 
+              alt="Track artwork"
+              class="w-full h-full object-cover"
+            >
+            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-90"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4">
+              <div class="text-sm font-medium">Neon Dreams</div>
+              <div class="text-xs text-muted">MR.FLEN</div>
+            </div>
+            <button 
+              class="glass-panel w-12 h-12 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300"
+            >
+              <i data-feather="play" class="w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <div class="p-3 flex items-center justify-between">
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="play" class="w-3 h-3"></i>
+              <span>24.5k</span>
+            </div>
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="heart" class="w-3 h-3 text-rose-500/70"></i>
+              <span>3.1k</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="glass-panel rounded-xl overflow-hidden group" data-aos="zoom-in" data-aos-delay="200">
+          <div class="aspect-square relative">
+            <img 
+              src="https://audius-content-1.cultur3stake.com/content/QmRfS6YgY3sM3b4Xhq2q9uS1XJ2xVdR5PcJz1KJj7yUZx2J/480x480.jpg" 
+              alt="Track artwork"
+              class="w-full h-full object-cover"
+            >
+            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-90"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4">
+              <div class="text-sm font-medium">Luminous</div>
+              <div class="text-xs text-muted">MR.FLEN</div>
+            </div>
+            <button 
+              class="glass-panel w-12 h-12 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300"
+            >
+              <i data-feather="play" class="w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <div class="p-3 flex items-center justify-between">
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="play" class="w-3 h-3"></i>
+              <span>18.2k</span>
+            </div>
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="heart" class="w-3 h-3 text-rose-500/70"></i>
+              <span>2.4k</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="glass-panel rounded-xl overflow-hidden group" data-aos="zoom-in" data-aos-delay="300">
+          <div class="aspect-square relative">
+            <img 
+              src="https://audius-content-3.cultur3stake.com/content/QmRfS6YgY3sM3b4Xhq2q9uS1XJ2xVdR5PcJz1KJj7yUZx2J/480x480.jpg" 
+              alt="Track artwork"
+              class="w-full h-full object-cover"
+            >
+            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-90"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4">
+              <div class="text-sm font-medium">Echo Chamber</div>
+              <div class="text-xs text-muted">MR.FLEN</div>
+            </div>
+            <button 
+              class="glass-panel w-12 h-12 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300"
+            >
+              <i data-feather="play" class="w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <div class="p-3 flex items-center justify-between">
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="play" class="w-3 h-3"></i>
+              <span>15.7k</span>
+            </div>
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="heart" class="w-3 h-3 text-rose-500/70"></i>
+              <span>1.8k</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="glass-panel rounded-xl overflow-hidden group" data-aos="zoom-in" data-aos-delay="400">
+          <div class="aspect-square relative">
+            <div class="w-full h-full bg-gradient-to-br from-brand/20 to-accent/40 flex items-center justify-center">
+              <i data-feather="music" class="text-white w-12 h-12 opacity-40"></i>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-90"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4">
+              <div class="text-sm font-medium">Quantum Waves</div>
+              <div class="text-xs text-muted">MR.FLEN</div>
+            </div>
+            <button 
+              class="glass-panel w-12 h-12 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300"
+            >
+              <i data-feather="play" class="w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <div class="p-3 flex items-center justify-between">
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="play" class="w-3 h-3"></i>
+              <span>12.9k</span>
+            </div>
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="heart" class="w-3 h-3 text-rose-500/70"></i>
+              <span>1.2k</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Player Dock -->
+  <footer 
+    id="playerDock"
+    class="player-gradient glass-panel fixed bottom-0 left-0 right-0 mx-4 mb-4 p-3 rounded-xl z-30 flex items-center justify-between backdrop-blur-xl"
+  >
+    <div class="flex items-center gap-3 w-48">
+      <div class="w-14 h-14 rounded-lg overflow-hidden">
+        <img 
+          src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg" 
+          alt="Now Playing"
+          class="w-full h-full object-cover"
+        >
+      </div>
+      <div>
+        <div class="font-medium truncate w-28">Midnight Vibes</div>
+        <div class="text-xs text-brand/90 truncate w-28">MR.FLEN</div>
+      </div>
+    </div>
+    
+    <div class="flex flex-col items-center flex-1 max-w-lg">
+      <div class="flex items-center gap-4">
+        <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+          <i data-feather="skip-back" class="w-4 h-4"></i>
+        </button>
+        <button 
+          id="playPauseBtn"
+          class="glass-panel w-12 h-12 flex items-center justify-center rounded-full bg-brand hover:bg-brand/90 transition"
+        >
+          <i data-feather="play" class="w-5 h-5 translate-x-px"></i>
+        </button>
+        <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+          <i data-feather="skip-forward" class="w-4 h-4"></i>
+        </button>
+      </div>
+      
+      <div class="w-full flex items-center gap-2 mt-2">
+        <span class="text-xs text-muted">0:00</span>
+        <div class="h-1 rounded-full bg-white/10 flex-1">
+          <div class="progress-bar w-1/3 h-full rounded-full"></div>
+        </div>
+        <span class="text-xs text-muted">3:42</span>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-3 w-48 justify-end">
+      <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+        <i data-feather="heart" class="w-4 h-4"></i>
+      </button>
+      <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+        <i data-feather="shuffle" class="w-4 h-4"></i>
+      </button>
+      <button 
+        id="expandPlayer"
+        class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition"
+      >
+        <i data-feather="maximize" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </footer>
+  
+  <!-- Full Player View (hidden by default) -->
+  <div 
+    id="fullPlayer"
+    class="hidden fixed inset-0 bg-bg0 z-50 flex flex-col"
+  >
+    <div class="p-4">
+      <button id="closePlayer" class="glass-panel w-8 h-8 flex items-center justify-center rounded-full">
+        <i data-feather="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    
+    <div class="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto px-4">
+      <div class="relative">
+        <img 
+          src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg" 
+          alt="Midnight Vibes Artwork"
+          class="rounded-3xl w-full max-w-md mx-auto shadow-2xl"
+        >
+        
+        <div class="absolute -inset-6 bg-gradient-to-tr from-brand/20 to-accent/40 blur-3xl opacity-30 rounded-3xl -z-10"></div>
+      </div>
+      
+      <div class="mt-8 text-center max-w-lg">
+        <h2 class="text-4xl md:text-5xl font-bold mb-2">Midnight Vibes</h2>
+        <p class="text-xl text-brand">MR.FLEN</p>
+        
+        <div class="mt-6 flex items-center justify-center gap-6">
+          <div class="flex flex-col items-center">
+            <div class="glass-panel w-12 h-12 rounded-full flex items-center justify-center mb-1">
+              <i data-feather="play" class="w-5 h-5"></i>
+            </div>
+            <span class="text-sm text-muted">24.5k</span>
+          </div>
+          
+          <div class="flex flex-col items-center">
+            <div class="glass-panel w-12 h-12 rounded-full flex items-center justify-center mb-1">
+              <i data-feather="heart" class="w-5 h-5 text-rose-500/70"></i>
+            </div>
+            <span class="text-sm text-muted">3.1k</span>
+          </div>
+          
+          <div class="flex flex-col items-center">
+            <div class="glass-panel w-12 h-12 rounded-full flex items-center justify-center mb-1">
+              <i data-feather="share-2" class="w-5 h-5"></i>
+            </div>
+            <span class="text-sm text-muted">Share</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="w-full mt-8 max-w-md">
+        <div class="flex items-center gap-4">
+          <span class="text-xs text-muted w-8">0:00</span>
+          <div class="h-2 rounded-full bg-white/10 flex-1">
+            <div class="progress-bar w-1/3 h-full rounded-full"></div>
+          </div>
+          <span class="text-xs text-muted w-8">3:42</span>
+        </div>
+        
+        <div class="flex items-center justify-center gap-8 mt-6">
+          <button class="glass-panel w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+            <i data-feather="skip-back" class="w-5 h-5"></i>
+          </button>
+          <button 
+            id="fullPlayerPlay"
+            class="glass-panel w-16 h-16 flex items-center justify-center rounded-full bg-brand hover:bg-brand/90 transition"
+          >
+            <i data-feather="play" class="w-6 h-6 translate-x-px"></i>
+          </button>
+          <button class="glass-panel w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+            <i data-feather="skip-forward" class="w-5 h-5"></i>
+          </button>
+        </div>
+        
+        <div class="flex items-center justify-center gap-6 mt-8">
+          <button class="glass-panel px-4 py-2 flex items-center gap-2 rounded-full text-sm hover:bg-panel/80 transition">
+            <i data-feather="repeat" class="w-4 h-4"></i>
+          </button>
+          <button class="glass-panel px-4 py-2 flex items-center gap-2 rounded-full text-sm hover:bg-panel/80 transition">
+            <i data-feather="shuffle" class="w-4 h-4"></i>
+          </button>
+          <button class="glass-panel px-4 py-2 flex items-center gap-2 rounded-full text-sm bg-brand/20 hover:bg-brand/30 transition">
+            <i data-feather="heart" class="w-4 h-4"></i>
+            Like
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Config -->
+  <script id="config" type="application/json">
+    {
+      "audiusKey": "922e6edcae9856000bf6814a1ee5745bfb57734",
+      "scClientId": "YOUR_ACTUAL_SOUNDCLOUD_CLIENT_ID_HERE",
+      "scRedirectUri": "https://your-actual-domain.com/soundcloud-callback",
+      "googleClientId": "YOUR_ACTUAL_GOOGLE_CLIENT_ID_HERE",
+      "googleRedirectUri": "https://your-actual-domain.com/google-callback",
+      "mrflens": { "audiusHandle": "mrflen", "soundcloudUsername": "Mr.FLEN" }
+    }
+  </script>
+  
+  <!-- Audius API Integration -->
+  <script>
+    const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734";
+    const AUDIUS_BASE_URL = "https://discovery.audius.co/v1";
+    
+    // Initialize animations and icons
+    document.addEventListener('DOMContentLoaded', async () => {
+      feather.replace();
+      AOS.init({
+        duration: 600,
+        easing: 'ease-out',
+        once: true
+      });
+      
+      // Player expansion toggle
+      document.getElementById('expandPlayer').addEventListener('click', () => {
+        document.getElementById('playerDock').classList.add('hidden');
+        document.getElementById('fullPlayer').classList.remove('hidden');
+      });
+      
+      document.getElementById('closePlayer').addEventListener('click', () => {
+        document.getElementById('playerDock').classList.remove('hidden');
+        document.getElementById('fullPlayer').classList.add('hidden');
+      });
+      
+      // Check for OAuth callback parameters (if we're returning from an OAuth flow)
+      checkForOAuthCallback();
+      
+      // Set up SoundCloud connection
+      setupSoundCloudAuth();
+      
+      // Set up Google authentication
+      setupGoogleAuth();
+      
+      // Fetch trending tracks from Audius
+      await fetchTrendingTracks();
+      
+      // Fetch Mr.FLEN tracks
+      await fetchMrFlenTracks();
+      
+      // Set up search functionality
+      setupSearch();
+    });
+    
+    // Check if we're returning from an OAuth flow and handle the response
+    function checkForOAuthCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      const error = urlParams.get('error');
+      
+      // Handle SoundCloud callback
+      if (urlParams.has('code') && window.location.pathname.includes('soundcloud-callback')) {
+        const storedState = sessionStorage.getItem('sc_oauth_state');
+        
+        // Validate state parameter to prevent CSRF
+        if (state !== storedState) {
+          console.error('State parameter mismatch in SoundCloud OAuth');
+          return;
+        }
+        
+        // Clear state from storage
+        sessionStorage.removeItem('sc_oauth_state');
+        
+        // Exchange code for access token (this should be done server-side)
+        console.log('SoundCloud authorization code received:', code);
+        // In a real implementation, you would send this to your backend
+        alert('SoundCloud connected successfully!');
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      
+      // Handle Google callback
+      if (urlParams.has('code') && window.location.pathname.includes('google-callback')) {
+        const storedState = sessionStorage.getItem('google_oauth_state');
+        
+        // Validate state parameter to prevent CSRF
+        if (state !== storedState) {
+          console.error('State parameter mismatch in Google OAuth');
+          return;
+        }
+        
+        // Clear state from storage
+        sessionStorage.removeItem('google_oauth_state');
+        sessionStorage.removeItem('google_oauth_nonce');
+        
+        // Exchange code for access token (this should be done server-side)
+        console.log('Google authorization code received:', code);
+        // In a real implementation, you would send this to your backend
+        alert('Google authentication successful!');
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      
+      // Handle OAuth errors
+      if (error) {
+        console.error('OAuth error:', error, urlParams.get('error_description'));
+        alert(`Authentication error: ${error}`);
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+    
+    // Fetch trending tracks from Audius
+    async function fetchTrendingTracks() {
+      try {
+        const response = await fetch(`${AUDIUS_BASE_URL}/tracks/trending?app_name=MrFLEN`, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch trending tracks');
+        
+        const data = await response.json();
+        const trendingContainer = document.querySelector('.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-4');
+        
+        if (data.data && data.data.length > 0) {
+          trendingContainer.innerHTML = '';
+          
+          data.data.slice(0, 4).forEach((track, index) => {
+            const trackElement = createTrackCard(track, index);
+            trendingContainer.appendChild(trackElement);
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching trending tracks:', error);
+      }
+    }
+    
+    // Fetch Mr.FLEN tracks
+    async function fetchMrFlenTracks() {
+      try {
+        // First, get Mr.FLEN user ID
+        const userResponse = await fetch(`${AUDIUS_BASE_URL}/users/search?query=mrflen&app_name=MrFLEN`, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!userResponse.ok) throw new Error('Failed to search for Mr.FLEN');
+        
+        const userData = await userResponse.json();
+        if (userData.data && userData.data.length > 0) {
+          const mrFlenUser = userData.data[0];
+          
+          // Get tracks by Mr.FLEN
+          const tracksResponse = await fetch(`${AUDIUS_BASE_URL}/users/${mrFlenUser.id}/tracks?app_name=MrFLEN`, {
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (!tracksResponse.ok) throw new Error('Failed to fetch Mr.FLEN tracks');
+          
+          const tracksData = await tracksResponse.json();
+          const libraryList = document.getElementById('libraryList');
+          
+          if (tracksData.data && tracksData.data.length > 0) {
+            libraryList.innerHTML = '';
+            
+            tracksData.data.slice(0, 3).forEach(track => {
+              const listItem = createLibraryListItem(track);
+              libraryList.appendChild(listItem);
+            });
+            
+            // Update hero section with the first track
+            updateHeroSection(tracksData.data[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Mr.FLEN tracks:', error);
+      }
+    }
+    
+    // Create track card for trending section
+    function createTrackCard(track, index) {
+      const card = document.createElement('div');
+      card.className = 'glass-panel rounded-xl overflow-hidden group';
+      card.setAttribute('data-aos', 'zoom-in');
+      card.setAttribute('data-aos-delay', `${(index + 1) * 100}`);
+      
+      const artworkUrl = track.artwork && track.artwork['480x480'] 
+        ? track.artwork['480x480'] 
+        : 'https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg';
+      
+      card.innerHTML = `
+        <div class="aspect-square relative">
+          <img 
+            src="${artworkUrl}" 
+            alt="${track.title}"
+            class="w-full h-full object-cover"
+          >
+          <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-90"></div>
+          <div class="absolute bottom-0 left-0 w-full p-4">
+            <div class="text-sm font-medium">${track.title}</div>
+            <div class="text-xs text-muted">${track.user.name}</div>
+          </div>
+          <button 
+            class="glass-panel w-12 h-12 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300"
+            onclick="playTrack('${track.id}', '${track.title}', '${track.user.name}', '${artworkUrl}')"
+          >
+            <i data-feather="play" class="w-5 h-5"></i>
+          </button>
+        </div>
+        
+        <div class="p-3 flex items-center justify-between">
+          <div class="text-xs flex items-center gap-1 text-muted">
+            <i data-feather="play" class="w-3 h-3"></i>
+            <span>${track.play_count ? Math.round(track.play_count / 1000) + 'k' : '0'}</span>
+          </div>
+          <div class="text-xs flex items-center gap-1 text-muted">
+            <i data-feather="heart" class="w-3 h-3 text-rose-500/70"></i>
+            <span>${track.favorite_count ? Math.round(track.favorite_count / 1000) + 'k' : '0'}</span>
+          </div>
+        </div>
+      `;
+      
+      return card;
+    }
+    
+    // Create library list item
+    function createLibraryListItem(track) {
+      const li = document.createElement('li');
+      li.className = 'track-item glass-panel px-3 py-2 rounded-xl flex items-center gap-3 cursor-pointer group';
+      
+      const artworkUrl = track.artwork && track.artwork['150x150'] 
+        ? track.artwork['150x150'] 
+        : 'https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg';
+      
+      li.innerHTML = `
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-brand/30 to-accent/30 overflow-hidden">
+          <img 
+            src="${artworkUrl}" 
+            alt="${track.title}"
+            class="w-full h-full object-cover"
+          >
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-medium truncate">${track.title}</div>
+          <div class="text-xs text-muted truncate">${track.user.name}</div>
+        </div>
+        <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full group-hover:opacity-100 opacity-0 transition-opacity"
+                onclick="playTrack('${track.id}', '${track.title}', '${track.user.name}', '${artworkUrl}')">
+          <i data-feather="play" class="w-4 h-4"></i>
+        </button>
+      `;
+      
+      return li;
+    }
+    
+    // Update hero section with track data
+    function updateHeroSection(track) {
+      const heroTitle = document.getElementById('heroTitle');
+      const heroImage = document.querySelector('.hero img');
+      const heroArtist = document.querySelector('.hero .muted');
+      
+      if (track) {
+        heroTitle.textContent = track.title;
+        heroArtist.textContent = track.user.name;
+        
+        if (track.artwork && track.artwork['480x480']) {
+          heroImage.src = track.artwork['480x480'];
+        }
+        
+        // Update play button to play this track
+        const playButton = document.querySelector('.hero button');
+        playButton.onclick = () => playTrack(track.id, track.title, track.user.name, 
+          track.artwork && track.artwork['480x480'] ? track.artwork['480x480'] : 
+          'https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg');
+      }
+    }
+    
+    // Play track function
+    function playTrack(trackId, title, artist, artwork) {
+      // Update player UI
+      document.getElementById('npTitle').textContent = title;
+      document.getElementById('npArtist').textContent = artist;
+      document.getElementById('npArt').src = artwork;
+      
+      // Show playing state
+      const playButton = document.getElementById('playPauseBtn');
+      playButton.innerHTML = '<i data-feather="pause" class="w-5 h-5"></i>';
+      feather.replace();
+      
+      // Fetch and play stream
+      fetch(`${AUDIUS_BASE_URL}/tracks/${trackId}/stream?app_name=MrFLEN`)
+        .then(response => {
+          if (response.ok) {
+            const audio = document.getElementById('audio');
+            audio.src = response.url;
+            audio.play();
+            
+            // Set up Media Session API
+            if ('mediaSession' in navigator) {
+              navigator.mediaSession.metadata = new MediaMetadata({
+                title: title,
+                artist: artist,
+                artwork: [
+                  { src: artwork, sizes: '96x96', type: 'image/jpeg' },
+                  { src: artwork, sizes: '128x128', type: 'image/jpeg' },
+                  { src: artwork, sizes: '192x192', type: 'image/jpeg' },
+                  { src: artwork, sizes: '256x256', type: 'image/jpeg' },
+                  { src: artwork, sizes: '384x384', type: 'image/jpeg' },
+                  { src: artwork, sizes: '512x512', type: 'image/jpeg' },
+                ]
+              });
+              
+              navigator.mediaSession.setActionHandler('play', () => audio.play());
+              navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error playing track:', error);
+        });
+    }
+    
+    // Set up SoundCloud authentication with proper OAuth 2.0 flow
+    function setupSoundCloudAuth() {
+      const connectSCButton = document.getElementById('connectSC');
+      
+      connectSCButton.addEventListener('click', () => {
+        // SoundCloud OAuth 2.0 flow - compliant with security policies
+        const config = JSON.parse(document.getElementById('config').textContent);
+        const clientId = config.scClientId;
+        const redirectUri = encodeURIComponent(config.scRedirectUri);
+        const scope = encodeURIComponent('non-expiring');
+        const responseType = 'code';
+        const state = generateStateParameter(); // CSRF protection
+        
+        // Store state in session storage for validation
+        sessionStorage.setItem('sc_oauth_state', state);
+        
+        const authUrl = `https://soundcloud.com/connect?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&state=${state}`;
+        
+        // Redirect to SoundCloud auth (not popup for better security)
+        window.location.href = authUrl;
+        
+        // For demo purposes, we'll also simulate storing user data
+        // In a real implementation, you would get this from the OAuth response
+        setTimeout(() => {
+          const user = {
+            id: 'sc_' + Date.now(),
+            name: 'SoundCloud User',
+            username: 'soundcloud_user',
+            avatar: 'https://via.placeholder.com/150',
+            provider: 'soundcloud',
+            connectedAt: new Date().toISOString()
+          };
+          
+          saveUserData(user);
+        }, 1000);
+      });
+    }
+    
+    // Generate secure state parameter for OAuth
+    function generateStateParameter() {
+      const array = new Uint32Array(10);
+      window.crypto.getRandomValues(array);
+      return Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
+    }
+    
+    // Set up Instagram authentication
+    function setupInstagramAuth() {
+      const connectInstagramButton = document.getElementById('connectInstagram');
+      
+      connectInstagramButton.addEventListener('click', () => {
+        // For demo purposes, we'll simulate Instagram authentication
+        // In a real implementation, you would use Instagram's OAuth flow
+        const user = {
+          id: 'insta_' + Date.now(),
+          name: 'Instagram User',
+          username: 'instagram_user',
+          avatar: 'https://via.placeholder.com/150',
+          provider: 'instagram',
+          connectedAt: new Date().toISOString()
+        };
+        
+        saveUserData(user);
+        alert('Instagram connected successfully! (Demo mode)');
+      });
+    }
+    
+    // Set up Google authentication with proper OAuth 2.0 flow
+    function setupGoogleAuth() {
+      const connectGoogleButton = document.getElementById('connectGoogle');
+      
+      connectGoogleButton.addEventListener('click', () => {
+        // Google OAuth 2.0 flow - compliant with security policies
+        const config = JSON.parse(document.getElementById('config').textContent);
+        const clientId = config.googleClientId;
+        const redirectUri = encodeURIComponent(config.googleRedirectUri);
+        const scope = encodeURIComponent('email profile');
+        const responseType = 'code';
+        const state = generateStateParameter(); // CSRF protection
+        const nonce = generateStateParameter(); // Replay attack protection
+        
+        // Store state and nonce in session storage for validation
+        sessionStorage.setItem('google_oauth_state', state);
+        sessionStorage.setItem('google_oauth_nonce', nonce);
+        
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&state=${state}&nonce=${nonce}&prompt=select_account`;
+        
+        // Redirect to Google auth (not popup for better security)
+        window.location.href = authUrl;
+        
+        // For demo purposes, we'll also simulate storing user data
+        // In a real implementation, you would get this from the OAuth response
+        setTimeout(() => {
+          const user = {
+            id: 'google_' + Date.now(),
+            name: 'Google User',
+            email: 'user@gmail.com',
+            avatar: 'https://via.placeholder.com/150',
+            provider: 'google',
+            connectedAt: new Date().toISOString()
+          };
+          
+          saveUserData(user);
+        }, 1000);
+      });
+    }
+    
+    // Set up search functionality
+    function setupSearch() {
+      const searchInput = document.getElementById('q');
+      const searchButton = document.querySelector('.search-input + div');
+      const mainContent = document.querySelector('main');
+      
+      // Create search results container (initially hidden)
+      const searchResultsContainer = document.createElement('div');
+      searchResultsContainer.id = 'searchResults';
+      searchResultsContainer.className = 'glass-panel col-span-1 lg:col-span-3 hidden';
+      searchResultsContainer.innerHTML = `
+        <div class="p-4 border-b border-white/5 flex items-center justify-between">
+          <h2 class="font-medium flex items-center gap-2">
+            <i data-feather="search" class="text-brand w-5 h-5"></i>
+            Search Results
+          </h2>
+          <button id="clearSearch" class="glass-panel px-3 py-1 text-sm hover:bg-panel/80 transition">
+            Clear Search
+          </button>
+        </div>
+        <div id="searchResultsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4"></div>
+        <div id="noResults" class="hidden p-8 text-center text-muted">
+          <i data-feather="search" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+          <p>No results found for your search</p>
+        </div>
+      `;
+      
+      // Insert search results container at the beginning of main content
+      mainContent.insertBefore(searchResultsContainer, mainContent.firstChild);
+      
+      const performSearch = async () => {
+        const query = searchInput.value.trim();
+        if (query.length > 2) {
+          try {
+            // Show loading state
+            document.getElementById('searchResultsGrid').innerHTML = `
+              <div class="col-span-full flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
+              </div>
+            `;
+            
+            // Hide other sections and show search results
+            document.querySelectorAll('section, aside').forEach(el => el.classList.add('hidden'));
+            searchResultsContainer.classList.remove('hidden');
+            
+            const response = await fetch(`${AUDIUS_BASE_URL}/tracks/search?query=${encodeURIComponent(query)}&app_name=MrFLEN`, {
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              const resultsGrid = document.getElementById('searchResultsGrid');
+              const noResults = document.getElementById('noResults');
+              
+              if (data.data && data.data.length > 0) {
+                noResults.classList.add('hidden');
+                resultsGrid.innerHTML = '';
+                
+                data.data.slice(0, 8).forEach((track, index) => {
+                  const trackElement = createTrackCard(track, index);
+                  resultsGrid.appendChild(trackElement);
+                });
+                
+                // Update icons in the new elements
+                setTimeout(() => feather.replace(), 100);
+              } else {
+                resultsGrid.innerHTML = '';
+                noResults.classList.remove('hidden');
+              }
+            }
+          } catch (error) {
+            console.error('Search error:', error);
+            document.getElementById('searchResultsGrid').innerHTML = `
+              <div class="col-span-full text-center py-8 text-red-400">
+                <i data-feather="alert-circle" class="w-12 h-12 mx-auto mb-4"></i>
+                <p>Error loading search results</p>
+              </div>
+            `;
+            feather.replace();
+          }
+        }
+      };
+      
+      // Clear search and show original content
+      document.getElementById('clearSearch').addEventListener('click', () => {
+        searchInput.value = '';
+        searchResultsContainer.classList.add('hidden');
+        document.querySelectorAll('section, aside').forEach(el => el.classList.remove('hidden'));
+      });
+      
+      searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch();
+      });
+      
+      searchButton.addEventListener('click', performSearch);
+      
+      // Also search when input changes after a delay
+      let searchTimeout;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 800);
+      });
+    }
+    
+    // Simulate progress bar animation
+    const progressBar = document.querySelectorAll('.progress-bar');
+    let progress = 0;
+    
+    setInterval(() => {
+      progress = (progress + 0.1) % 100;
+      progressBar.forEach(bar => {
+        bar.style.width = `${progress}%`;
+      });
+    }, 300);
+  </script>
+</body>
+</html>
