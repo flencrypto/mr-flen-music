@@ -3,6 +3,7 @@ const {
   removeFromQueue,
   moveInQueue,
   adjustIndexOnRemove,
+  previousIndex,
 } = require('../public/queue-utils');
 
 
@@ -31,6 +32,12 @@ describe('queue-utils', () => {
 
   test('adjustIndexOnRemove unchanged when removed after current', () => {
     expect(adjustIndexOnRemove(1, 2)).toBe(1);
+  });
+
+  test('previousIndex steps back when possible', () => {
+    expect(previousIndex(3)).toBe(2);
+    expect(previousIndex(0)).toBe(0);
+    expect(previousIndex(-1)).toBe(-1);
   });
 
 });
