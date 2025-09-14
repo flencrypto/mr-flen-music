@@ -310,9 +310,10 @@
         <div class="row" style="justify-content: space-between">
           <span id="queueLabel">Queue: 0</span>
           <div class="row" style="gap: 4px">
-            <button id="showQueue" class="btn">📃</button>
-            <button id="shuffle" class="btn">🔀</button>
-            <button id="next" class="btn">⏭</button>
+            <button id="showQueue" class="btn" aria-label="Show queue">📃</button>
+            <button id="shuffle" class="btn" aria-label="Shuffle">🔀</button>
+            <button id="prev" class="btn" aria-label="Previous">⏮</button>
+            <button id="next" class="btn" aria-label="Next">⏭</button>
           </div>
         </div>
       <div id="playerContainer">
@@ -615,6 +616,7 @@
         if (!initGoogleAuth()) setTimeout(initGoogle, 100);
       })();
         const nextBtn = document.querySelector("#next");
+        const prevBtn = document.querySelector("#prev");
         const shuffleBtn = document.querySelector("#shuffle");
         const queueLabel = document.querySelector("#queueLabel");
         const showQueueBtn = document.getElementById("showQueue");
@@ -624,8 +626,13 @@
         const savePlaylistBtn = document.getElementById("savePlaylistBtn");
         const playlistList = document.getElementById("playlistList");
         const genresEl = document.querySelector("#genres");
-        const { addToQueue, removeFromQueue, moveInQueue, adjustIndexOnRemove } =
-          queueUtils;
+        const {
+          addToQueue,
+          removeFromQueue,
+          moveInQueue,
+          adjustIndexOnRemove,
+          previousIndex,
+        } = queueUtils;
       let progressContainer;
       let progressBar;
       let currentTimeEl;
@@ -1118,6 +1125,14 @@
       nextBtn.onclick = () => {
         if (currentIndex + 1 < queue.length) {
           currentIndex++;
+          playTrack(queue[currentIndex]);
+        }
+      };
+
+      prevBtn.onclick = () => {
+        const idx = previousIndex(currentIndex);
+        if (idx !== currentIndex && idx >= 0 && idx < queue.length) {
+          currentIndex = idx;
           playTrack(queue[currentIndex]);
         }
       };

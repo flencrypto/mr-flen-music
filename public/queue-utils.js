@@ -36,5 +36,15 @@
     return removedIndex <= currentIndex ? currentIndex - 1 : currentIndex;
   }
 
-  return { addToQueue, removeFromQueue, moveInQueue, adjustIndexOnRemove };
+  function previousIndex(currentIndex) {
+    return currentIndex > 0 ? currentIndex - 1 : currentIndex;
+  }
+
+  return {
+    addToQueue,
+    removeFromQueue,
+    moveInQueue,
+    adjustIndexOnRemove,
+    previousIndex,
+  };
 });
