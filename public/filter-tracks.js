@@ -29,16 +29,34 @@
 
   function listMonths(tracks) {
     if (!Array.isArray(tracks)) return [];
+
+    const toDate = (value) => {
+      if (!value) return null;
+      const d = value instanceof Date ? new Date(value.getTime()) : new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d;
+    };
+
+    const fields = ['createdAt', 'created_at', 'releaseDate', 'release_date'];
+
     const dates = tracks
-      .map((t) => new Date(t.createdAt))
-      .filter((d) => !Number.isNaN(d.getTime()))
+      .map((track) => {
+        for (let i = 0; i < fields.length; i += 1) {
+          const parsed = toDate(track?.[fields[i]]);
+          if (parsed) return parsed;
+        }
+        return null;
+      })
+      .filter(Boolean)
       .sort((a, b) => a - b);
+
     if (!dates.length) return [];
+
     const first = new Date(dates[0].getFullYear(), dates[0].getMonth(), 1);
-    const now = new Date();
+    const last = new Date(dates[dates.length - 1].getFullYear(), dates[dates.length - 1].getMonth(), 1);
+
     const months = [];
     const current = new Date(first);
-    while (current <= now) {
+    while (current <= last) {
       const m = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
       months.push(m);
       current.setMonth(current.getMonth() + 1);

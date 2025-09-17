@@ -54,8 +54,18 @@ describe('listMonths', () => {
     jest.useRealTimers();
   });
 
-  test('lists months from first release to current month', () => {
+  test('lists months from earliest to latest release month present', () => {
     const months = listMonths(tracks);
-    expect(months).toEqual(['2024-01', '2024-02', '2024-03']);
+    expect(months).toEqual(['2024-01', '2024-02']);
+  });
+
+  test('uses track metadata fields instead of current date', () => {
+    const extraTracks = [
+      { release_date: '2024-01-01' },
+      { release_date: '2024-03-15' },
+      { created_at: '2024-05-01' },
+    ];
+    const months = listMonths(extraTracks);
+    expect(months).toEqual(['2024-01', '2024-02', '2024-03', '2024-04', '2024-05']);
   });
 });
