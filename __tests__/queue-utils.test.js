@@ -34,6 +34,11 @@ describe('queue-utils', () => {
     expect(adjustIndexOnRemove(1, 2)).toBe(1);
   });
 
+  test('adjustIndexOnRemove ignores invalid removal indices', () => {
+    expect(adjustIndexOnRemove(1, -1)).toBe(1);
+    expect(adjustIndexOnRemove(-1, 0)).toBe(-1);
+  });
+
   test('previousIndex steps back when possible', () => {
     expect(previousIndex(3)).toBe(2);
     expect(previousIndex(0)).toBe(0);
