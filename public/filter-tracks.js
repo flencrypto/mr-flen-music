@@ -8,6 +8,22 @@
     root.listMonths = listMonths;
   }
 })(this, function () {
+  const dateFields = ['createdAt', 'created_at', 'releaseDate', 'release_date'];
+
+  const toDate = (value) => {
+    if (!value) return null;
+    const d = value instanceof Date ? new Date(value.getTime()) : new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+  };
+
+  const resolveTrackDate = (track) => {
+    for (let i = 0; i < dateFields.length; i += 1) {
+      const parsed = toDate(track?.[dateFields[i]]);
+      if (parsed) return parsed;
+    }
+    return null;
+  };
+
   function filterByGenre(tracks, genre) {
     if (!Array.isArray(tracks)) return [];
     if (!genre) return tracks.slice();
@@ -19,10 +35,9 @@
     if (!Array.isArray(tracks)) return [];
     if (!month) return tracks.slice();
     return tracks.filter((t) => {
-      if (!t.createdAt) return false;
-      const d = new Date(t.createdAt);
-      if (Number.isNaN(d.getTime())) return false;
-      const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const date = resolveTrackDate(t);
+      if (!date) return false;
+      const m = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       return m === month;
     });
   }
@@ -30,22 +45,8 @@
   function listMonths(tracks) {
     if (!Array.isArray(tracks)) return [];
 
-    const toDate = (value) => {
-      if (!value) return null;
-      const d = value instanceof Date ? new Date(value.getTime()) : new Date(value);
-      return Number.isNaN(d.getTime()) ? null : d;
-    };
-
-    const fields = ['createdAt', 'created_at', 'releaseDate', 'release_date'];
-
     const dates = tracks
-      .map((track) => {
-        for (let i = 0; i < fields.length; i += 1) {
-          const parsed = toDate(track?.[fields[i]]);
-          if (parsed) return parsed;
-        }
-        return null;
-      })
+      .map((track) => resolveTrackDate(track))
       .filter(Boolean)
       .sort((a, b) => a - b);
 
