@@ -24,6 +24,20 @@
     return null;
   };
 
+  const toMonthIndex = (date) => date.getUTCFullYear() * 12 + date.getUTCMonth();
+
+  const formatMonthKey = (date) => {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
+
+  const formatMonthFromIndex = (index) => {
+    const year = Math.floor(index / 12);
+    const month = String((index % 12) + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
+
   function filterByGenre(tracks, genre) {
     if (!Array.isArray(tracks)) return [];
     if (!genre) return tracks.slice();
@@ -37,8 +51,7 @@
     return tracks.filter((t) => {
       const date = resolveTrackDate(t);
       if (!date) return false;
-      const m = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      return m === month;
+      return formatMonthKey(date) === month;
     });
   }
 
@@ -52,15 +65,12 @@
 
     if (!dates.length) return [];
 
-    const first = new Date(dates[0].getFullYear(), dates[0].getMonth(), 1);
-    const last = new Date(dates[dates.length - 1].getFullYear(), dates[dates.length - 1].getMonth(), 1);
-
     const months = [];
-    const current = new Date(first);
-    while (current <= last) {
-      const m = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
-      months.push(m);
-      current.setMonth(current.getMonth() + 1);
+    const firstIndex = toMonthIndex(dates[0]);
+    const lastIndex = toMonthIndex(dates[dates.length - 1]);
+
+    for (let idx = firstIndex; idx <= lastIndex; idx += 1) {
+      months.push(formatMonthFromIndex(idx));
     }
     return months;
   }
