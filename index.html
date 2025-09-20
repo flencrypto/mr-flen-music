@@ -761,11 +761,18 @@
         if (!response.ok) throw new Error('Failed to fetch trending tracks');
         
         const data = await response.json();
-        const trendingContainer = document.querySelector('.grid.grid-cols-1');
-        
+        const trendingContainer = document.querySelector(
+          'section[aria-labelledby="trendingTitle"] .grid.grid-cols-1'
+        );
+
+        if (!trendingContainer) {
+          console.warn('Trending section container not found.');
+          return;
+        }
+
         if (data.data && data.data.length > 0) {
           trendingContainer.innerHTML = '';
-          
+
           data.data.slice(0, 4).forEach((track, index) => {
             const trackElement = createTrackCard(track, index);
             trendingContainer.appendChild(trackElement);
