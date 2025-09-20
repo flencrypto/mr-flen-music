@@ -628,7 +628,6 @@
           });
         }
       }
-
       // Settings modal animations
       const settingsModal = document.getElementById('settingsModal');
       const settingsPanel = document.getElementById('settingsPanel');
@@ -1180,6 +1179,7 @@
       searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(performSearch, 800);
+
       });
     }
     

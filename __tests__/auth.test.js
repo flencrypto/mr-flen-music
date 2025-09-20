@@ -18,11 +18,33 @@ describe('OAuth helpers', () => {
 
   test('exchangeCodeForToken uses fetch and returns token', async () => {
     const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
       json: () => Promise.resolve({ access_token: 'abc' })
     });
     const token = await exchangeCodeForToken('x', 'CODE', mockFetch);
     expect(mockFetch).toHaveBeenCalled();
     expect(token).toBe('abc');
+  });
+
+  test('exchangeCodeForToken throws when response not ok', async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: jest.fn()
+    });
+    await expect(exchangeCodeForToken('x', 'CODE', mockFetch)).rejects.toThrow(
+      'HTTP 400'
+    );
+  });
+
+  test('exchangeCodeForToken throws when token missing', async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({})
+    });
+    await expect(exchangeCodeForToken('x', 'CODE', mockFetch)).rejects.toThrow(
+      'access_token'
+    );
   });
 
   test('initGoogleAuth initialises Google sign-in when library available', () => {

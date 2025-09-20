@@ -11,6 +11,79 @@ if (!clientId || !clientSecret) {
 
 let tokenCache = { token: "", expires: 0 };
 
+const globalScope = (() => {
+  if (typeof globalThis !== "undefined") return globalThis;
+  if (typeof window !== "undefined") return window;
+  if (typeof global !== "undefined") return global;
+  return undefined;
+})();
+
+/**
+ * Encodes ASCII credentials to base64 without relying on Buffer/btoa.
+ * @param {string} input
+ * @returns {string}
+ */
+function base64EncodeAscii(input) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  let output = "";
+  let index = 0;
+  while (index < input.length) {
+    const c1 = input.charCodeAt(index);
+    index += 1;
+    if (c1 > 0xff) {
+      throw new Error("Only ASCII credentials are supported");
+    }
+    let c2 = Number.NaN;
+    if (index < input.length) {
+      c2 = input.charCodeAt(index);
+      index += 1;
+      if (!Number.isNaN(c2) && c2 > 0xff) {
+        throw new Error("Only ASCII credentials are supported");
+      }
+    }
+    let c3 = Number.NaN;
+    if (index < input.length) {
+      c3 = input.charCodeAt(index);
+      index += 1;
+      if (!Number.isNaN(c3) && c3 > 0xff) {
+        throw new Error("Only ASCII credentials are supported");
+      }
+    }
+
+    /* eslint-disable no-bitwise -- base64 encoding relies on bitwise math */
+    const enc1 = c1 >> 2;
+    const enc2 = ((c1 & 3) << 4) | (Number.isNaN(c2) ? 0 : (c2 >> 4));
+    const enc3 = Number.isNaN(c2)
+      ? 64
+      : ((c2 & 15) << 2) | (Number.isNaN(c3) ? 0 : (c3 >> 6));
+    const enc4 = Number.isNaN(c3) ? 64 : (c3 & 63);
+    /* eslint-enable no-bitwise */
+
+    output += chars.charAt(enc1)
+      + chars.charAt(enc2)
+      + chars.charAt(enc3)
+      + chars.charAt(enc4);
+  }
+  return output;
+}
+
+/**
+ * @param {string} id
+ * @param {string} secret
+ * @returns {string}
+ */
+function encodeClientCredentials(id, secret) {
+  const credentials = `${id}:${secret}`;
+  if (typeof Buffer !== "undefined" && typeof Buffer.from === "function") {
+    return Buffer.from(credentials, "utf-8").toString("base64");
+  }
+  const btoaFn = globalScope && typeof globalScope.btoa === "function" ? globalScope.btoa : undefined;
+  if (btoaFn) {
+    return btoaFn(credentials);
+  }
+  return base64EncodeAscii(credentials);
+}
+
 async function getSpotifyToken(fetchImpl = fetch) {
   if (tokenCache.token && Date.now() < tokenCache.expires) {
     return tokenCache.token;
@@ -18,7 +91,7 @@ async function getSpotifyToken(fetchImpl = fetch) {
   if (!clientId || !clientSecret) {
     throw new Error("Missing Spotify client credentials");
   }
-  const creds = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  const creds = encodeClientCredentials(clientId, clientSecret);
   const res = await fetchImpl("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
