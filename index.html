@@ -177,16 +177,19 @@
   <!-- Main Content -->
   <main class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 pb-24 max-w-7xl mx-auto w-full">
     <!-- Hero Section -->
-    <section 
-      class="glass-panel col-span-1 lg:col-span-2 overflow-hidden relative" 
+    <section
+      id="heroSection"
+      class="glass-panel col-span-1 lg:col-span-2 overflow-hidden relative"
       data-aos="fade-right"
       aria-labelledby="heroTitle"
     >
       <div class="absolute inset-0 bg-gradient-to-b from-black/40 to-black/80 z-0"></div>
-      <img 
-        src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg" 
+      <img
+        id="heroImage"
+        src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg"
         alt="Midnight Vibes by Mr. FLEN"
         class="absolute inset-0 w-full h-full object-cover z-0"
+        data-fallback-artwork="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg"
       >
       
       <div class="relative z-10 p-6 flex flex-col justify-end h-96">
@@ -197,10 +200,10 @@
           Now Trending
         </div>
         <h1 id="heroTitle" class="text-3xl md:text-4xl font-bold" data-aos="fade-up" data-aos-delay="100">Midnight Vibes</h1>
-        <p class="text-muted" data-aos="fade-up" data-aos-delay="200">MR.FLEN</p>
+        <p id="heroArtist" class="text-muted" data-aos="fade-up" data-aos-delay="200">MR.FLEN</p>
         
         <div class="mt-6 flex items-center gap-4" data-aos="fade-up" data-aos-delay="300">
-          <button class="glass-panel w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-brand/10 transition">
+          <button id="heroPlayButton" class="glass-panel w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-brand/10 transition">
             <i data-feather="play" class="w-6 h-6 text-white"></i>
           </button>
           <button class="glass-panel px-4 py-2 flex items-center gap-2 text-sm hover:bg-panel/80 transition">
@@ -905,23 +908,28 @@
     
     // Update hero section with track data
     function updateHeroSection(track) {
+      if (!track) return;
+
       const heroTitle = document.getElementById('heroTitle');
-      const heroImage = document.querySelector('.hero img');
-      const heroArtist = document.querySelector('.hero .text-muted');
-      
-      if (track) {
-        heroTitle.textContent = track.title;
-        heroArtist.textContent = track.user.name;
-        
-        if (track.artwork && track.artwork['480x480']) {
-          heroImage.src = track.artwork['480x480'];
-        }
-        
-        // Update play button to play this track
-        const playButton = document.querySelector('.hero button');
-        playButton.onclick = () => playTrack(track.id, track.title, track.user.name, 
-          track.artwork && track.artwork['480x480'] ? track.artwork['480x480'] : 
-          'https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg');
+      const heroImage = document.getElementById('heroImage');
+      const heroArtist = document.getElementById('heroArtist');
+      const playButton = document.getElementById('heroPlayButton');
+      const fallbackArtwork = heroImage?.dataset?.fallbackArtwork
+        || 'https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg';
+
+      if (heroTitle) heroTitle.textContent = track.title || 'Untitled';
+      if (heroArtist) heroArtist.textContent = track.user?.name || 'Unknown Artist';
+
+      const artwork = (track.artwork && track.artwork['480x480']) || fallbackArtwork;
+      if (heroImage) heroImage.src = artwork;
+
+      if (playButton) {
+        playButton.onclick = () => playTrack(
+          track.id,
+          track.title,
+          track.user?.name || 'Unknown Artist',
+          artwork
+        );
       }
     }
     
