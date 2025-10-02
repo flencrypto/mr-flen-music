@@ -1,4 +1,26 @@
-const { z } = require("zod");
+/** @type {{ z: typeof import("zod").z }} */
+let zodExports;
+
+const nodeRequire = typeof module === "object" && module && module.exports && typeof require === "function"
+  ? require
+  : null;
+
+if (nodeRequire) {
+  zodExports = nodeRequire("zod");
+} else {
+  const globalScope = typeof globalThis !== "undefined" ? globalThis : window;
+  if (globalScope && globalScope.z && typeof globalScope.z === "object") {
+    zodExports = { z: globalScope.z };
+  } else if (globalScope && globalScope.zod && typeof globalScope.zod === "object") {
+    zodExports = { z: globalScope.zod };
+  } else if (globalScope && globalScope.Zod && globalScope.Zod.z && typeof globalScope.Zod.z === "object") {
+    zodExports = { z: globalScope.Zod.z };
+  } else {
+    throw new Error("Zod library is required to use the Audius helper");
+  }
+}
+
+const { z } = zodExports;
 
 /**
  * @typedef {(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>} FetchLike
