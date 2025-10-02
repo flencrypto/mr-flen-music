@@ -18,6 +18,16 @@ A sleek, HTML-only music browser that unifies **Audius**, **SoundCloud**, and **
 1. Copy `.env.example` to `.env` and fill in credentials for SoundCloud, Spotify, Instagram, X, Snapchat, and TikTok.
 2. Serve the `public/` directory with any static host or open `public/index.html` directly in a browser.
 
+### Audius API health check
+
+Verify connectivity to the configured Audius discovery provider before running demos or populating dashboards:
+
+```bash
+pnpm test:audius
+```
+
+The script calls the `/health_check` endpoint with a 5 second timeout and exits non-zero if the provider is unavailable. Override the endpoint or timeout via `AUDIUS_BASE_URL` and `AUDIUS_TEST_TIMEOUT_MS`.
+
 ### OAuth configuration
 
 Each provider requires a client ID exposed via environment variables:

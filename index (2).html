@@ -558,6 +558,7 @@
   <!-- Config -->
   <script id="config" type="application/json">
     {
+      "audiusBaseUrl": "https://discoveryprovider.audius.co/v1",
       "audiusKey": "922e6edcae9856000bf6814a1ee5745bfb57734",
       "scClientId": "YOUR_ACTUAL_SOUNDCLOUD_CLIENT_ID_HERE",
       "scRedirectUri": "https://your-actual-domain.com/soundcloud-callback",
@@ -569,8 +570,25 @@
   
   <!-- Audius API Integration -->
   <script>
-    const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734";
-    const AUDIUS_BASE_URL = "https://discovery.audius.co/v1";
+    const DEFAULT_AUDIUS_BASE_URL = "https://discoveryprovider.audius.co/v1";
+    const configElement = document.getElementById("config");
+
+    function parseSiteConfig() {
+      if (!configElement) {
+        return {};
+      }
+
+      try {
+        return JSON.parse(configElement.textContent || "{}");
+      } catch (error) {
+        console.warn("Failed to parse site config, using defaults.", error);
+        return {};
+      }
+    }
+
+    const siteConfig = parseSiteConfig();
+    const AUDIUS_API_KEY = siteConfig.audiusKey || "922e6edcae9856000bf6814a1ee5745bfb57734";
+    const AUDIUS_BASE_URL = (siteConfig.audiusBaseUrl || DEFAULT_AUDIUS_BASE_URL).replace(/\/$/, "");
     
     // Initialize animations and icons
     document.addEventListener('DOMContentLoaded', async () => {
