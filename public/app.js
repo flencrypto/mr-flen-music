@@ -171,7 +171,7 @@ function isMrFlenAudius(handle){
 }
 
 async function audiusSearch(q){
-  const u = new URL('https://discovery.audius.co/v1/tracks/search');
+  const u = new URL('https://discoveryprovider.audius.co/v1/tracks/search');
   u.searchParams.set('query', q);
   u.searchParams.set('app_name','MrFLEN');
   u.searchParams.set('limit','25');
@@ -181,7 +181,7 @@ async function audiusSearch(q){
     id: t.id, platform:'audius',
     title: t.title, artist: t.user?.name, artwork: t.artwork?.['150x150'] || t.artwork?.['480x480'],
     durationMs: t.duration * 1000, permalink: t.permalink,
-    streamUrl: `https://discovery.audius.co/v1/tracks/${t.id}/stream?app_name=MrFLEN`,
+    streamUrl: `https://discoveryprovider.audius.co/v1/tracks/${t.id}/stream?app_name=MrFLEN`,
     isMrFlen: isMrFlenAudius(t.user?.handle)
   }));
 }
@@ -210,7 +210,7 @@ async function soundcloudSearch(q){
 async function loadTrending(){
   if(!els.trending) return;
   try {
-    const u = new URL('https://discovery.audius.co/v1/tracks/trending');
+    const u = new URL('https://discoveryprovider.audius.co/v1/tracks/trending');
     u.searchParams.set('limit', '8');
     u.searchParams.set('app_name', 'MrFLEN');
     const r = await fetch(u, { headers: { Accept: 'application/json' } });
@@ -219,7 +219,7 @@ async function loadTrending(){
       id: t.id, platform:'audius',
       title: t.title, artist: t.user?.name, artwork: t.artwork?.['150x150'] || t.artwork?.['480x480'],
       durationMs: t.duration * 1000, permalink: t.permalink,
-      streamUrl: `https://discovery.audius.co/v1/tracks/${t.id}/stream?app_name=MrFLEN`,
+      streamUrl: `https://discoveryprovider.audius.co/v1/tracks/${t.id}/stream?app_name=MrFLEN`,
       isMrFlen: isMrFlenAudius(t.user?.handle)
     }));
     els.trending.innerHTML = '';
