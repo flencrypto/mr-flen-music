@@ -1,1300 +1,1207 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Mr.FLENs Music Finder — Audius Library</title>
-    <link
-      rel="icon"
-      href="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <script>
-      window.GOOGLE_CLIENT_ID = window.GOOGLE_CLIENT_ID || '';
-    </script>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;700&display=swap"
-        rel="stylesheet"
-      />
-    <style>
-      :root {
-        /* Dark, futuristic palette inspired by the new dashboard mockup */
-        --color-primary: #2f81f7;
-        --color-secondary: #1f6feb;
-        --color-bg: #0d1117;
-        --color-glass: rgba(32, 38, 50, 0.6);
-        --color-text: #f0f6fc;
-        --color-muted: #8b949e;
-      }
-      body {
-        background: var(--color-bg);
-        color: var(--color-text);
-        font-family: "Inter", sans-serif;
-        margin: 0;
-      }
-      header,
-      footer,
-      main {
-        max-width: 1100px;
-        margin: auto;
-      }
-      .glass {
-        backdrop-filter: saturate(1.2) blur(12px);
-        background: var(--color-glass);
-        border: 1px solid #ffffff11;
-        border-radius: 16px;
-        box-shadow: 0 0 20px #000;
-      }
-      .grid {
-        display: grid;
-        gap: 16px;
-      }
-      input#search {
-        width: 100%;
-        padding: 12px 14px;
-        border-radius: 12px;
-        border: 1px solid #ffffff22;
-        background: #1c2333;
-        color: var(--color-text);
-        outline: none;
-      }
-      .track-card {
-        display: grid;
-        grid-template-columns: 72px 1fr auto auto;
-        gap: 12px;
-        padding: 12px;
-        align-items: center;
-      }
-      .track-card img {
-        border-radius: 10px;
-      }
-      .track-card .btn {
-        opacity: 0;
-        transition: opacity 0.2s;
-      }
-      .track-card:hover .btn {
-        opacity: 1;
-      }
-      .btn {
-        display: inline-block;
-        text-decoration: none;
-        border: 1px solid var(--color-primary);
-        color: var(--color-text);
-        padding: 8px 12px;
-        border-radius: 10px;
-        background: var(--color-primary);
-        cursor: pointer;
-      }
-      .btn:hover {
-        background: var(--color-secondary);
-        border-color: var(--color-secondary);
-      }
-      .playlist-card {
-        display: grid;
-        grid-template-columns: 72px 1fr;
-        gap: 12px;
-        padding: 12px;
-        align-items: center;
-        cursor: pointer;
-        text-decoration: none;
-        color: inherit;
-      }
-      .playlist-card img {
-        border-radius: 10px;
-      }
-      .pill {
-        padding: 2px 8px;
-        border: 1px solid #ffffff22;
-        border-radius: 999px;
-        font-size: 12px;
-        background: var(--color-glass);
-      }
-      .row {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        flex-wrap: wrap;
-      }
-      .chip {
-        padding: 4px 10px;
-        border: 1px solid var(--color-muted);
-        border-radius: 20px;
-        background: transparent;
-        color: var(--color-muted);
-        cursor: pointer;
-      }
-      .chip:hover {
-        color: var(--color-secondary);
-        border-color: var(--color-secondary);
-      }
-      .chip.active {
-        background: var(--color-primary);
-        color: #05060a;
-        border-color: var(--color-primary);
-      }
-      .sort-select {
-        padding: 4px 10px;
-        border: 1px solid var(--color-muted);
-        border-radius: 8px;
-        background: var(--color-glass);
-        color: var(--color-text);
-      }
-      #progressContainer {
-        display: none;
-        align-items: center;
-        gap: 8px;
-        margin-top: 8px;
-      }
-      #progressBar {
-        flex: 1;
-      }
-      .carousel {
-        display: flex;
-        gap: 16px;
-        overflow-x: auto;
-        padding-bottom: 4px;
-      }
-      .featured img {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        border-radius: 12px;
-      }
-      .logo {
-        height: 40px;
-        width: 40px;
-        border-radius: 50%;
-        border: 2px solid var(--color-secondary);
-        box-shadow: 0 0 4px #000;
-      }
-      .modal {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 1000;
-      }
-      .hidden {
-        display: none;
-      }
-    </style>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
-    <script src="public/theme.js"></script>
-  </head>
-  <body>
-    <div id="fb-root"></div>
-    <header class="glass grid" style="padding: 12px 16px; margin: 16px">
-      <div
-        class="row"
-        style="justify-content: space-between; align-items: center"
-      >
-        <div class="row">
-          <img
-            src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg"
-            alt="Mr.FLEN logo"
-            class="logo"
-          />
-          <h1 style="margin: 0">Mr.FLENs Music Finder</h1>
-          <span class="pill">Audius+SC</span>
-        </div>
-        <button
-          id="login"
-          class="pill"
-          style="cursor: pointer; background: #0000"
-        >
-          Login
-        </button>
-        <button id="backup-btn" class="pill" style="cursor:pointer;background:#0000;display:none;">Backup</button>
-        <button id="restore-btn" class="pill" style="cursor:pointer;background:#0000;">Restore</button>
-        <button id="theme-toggle" class="pill" style="cursor:pointer;background:#0000;">Toggle theme</button>
-      </div>
-      <nav class="row" style="gap:8px;margin-top:8px" aria-label="Social links">
-        <a
-          href="https://soundcloud.com/mr-flen"
-          class="pill"
-          target="_blank"
-          rel="noopener"
-          >SoundCloud</a
-        >
-        <a
-          href="https://www.tiktok.com/@mr.flen"
-          class="pill"
-          target="_blank"
-          rel="noopener"
-          >TikTok</a
-        >
-        <a
-          href="https://www.instagram.com/mr.flen"
-          class="pill"
-          target="_blank"
-          rel="noopener"
-          >Instagram</a
-        >
-        <a
-          href="https://twitter.com/themrflen"
-          class="pill"
-          target="_blank"
-          rel="noopener"
-          >X</a
-        >
-      </nav>
-      <input
-        id="search"
-        placeholder="Search tracks (Ctrl/⌘-K)"
-        autocomplete="off"
-      />
-      <div class="row" style="font-size:14px;gap:4px;align-items:center">
-        <input type="checkbox" id="all-artists-toggle" checked />
-        <label for="all-artists-toggle">Include all artists</label>
-      </div>
-      <div id="genres" class="row"></div>
-      <div class="row" style="margin-top:8px;align-items:center;gap:8px;">
-        <label for="sort-select">Sort:</label>
-        <select id="sort-select" class="sort-select">
-          <option value="trending">Trending</option>
-          <option value="popular">Most Popular</option>
-          <option value="latest">Latest</option>
-        </select>
-      </div>
-    </header>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Mr.FLEN's Music Finder</title>
+  <meta name="theme-color" content="#0b1017">
+  <link rel="manifest" href="public/manifest.webmanifest">
+  
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Feather Icons -->
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 
-    <div id="login-modal" class="modal hidden">
-      <div class="glass" style="padding:24px;max-width:320px;width:100%;">
-        <h2>Sign in</h2>
-        <div class="g_id_signin"></div>
-        <div id="fb-login-btn" class="btn" style="margin-top:8px;">Login with Facebook</div>
-        <div id="insta-login-btn" class="btn" style="margin-top:8px;">Login with Instagram</div>
-        <div id="x-login-btn" class="btn" style="margin-top:8px;">Login with X</div>
-        <div id="snap-login-btn" class="btn" style="margin-top:8px;">Login with Snapchat</div>
-        <div id="tiktok-login-btn" class="btn" style="margin-top:8px;">Login with TikTok</div>
-        <div id="close-login" class="btn" style="margin-top:8px;background:transparent;border-color:var(--color-muted);color:var(--color-muted);">Close</div>
+  <!-- Animation -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/animejs/lib/anime.iife.min.js"></script>
+  <script src="public/theme.js"></script>
+  
+  <style>
+    :root {
+      --bg-0:#0b1017; --panel:rgba(18,24,33,.72); --text:#e6eefc; --muted:#98a2b3;
+      --brand:#5AC8FA; --accent:#8b5cf6; --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    
+    body {
+      background-color: var(--bg-0);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    body.light {
+      --bg-0: #f5f7fa;
+      --panel: rgba(255,255,255,0.7);
+      --text: #111827;
+      --muted: #4b5563;
+    }
+
+    body.light::before {
+      background:
+        linear-gradient(to bottom, rgba(255,255,255,.6), rgba(255,255,255,.92)),
+        url('https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg') center/cover no-repeat;
+    }
+
+    body.light .glass-panel {
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(to bottom, rgba(7,10,14,.6), rgba(7,10,14,.92)),
+        url('https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg') center/cover no-repeat;
+      z-index: -1;
+    }
+    
+    .glass-panel {
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .track-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    
+    .player-gradient {
+      background: linear-gradient(90deg, rgba(92,200,250,0.1), rgba(139,92,246,0.1));
+    }
+    
+    .search-input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(92,200,250,0.25);
+    }
+    
+    .platform-badge-audius {
+      background: rgba(114,137,218,0.15);
+      color: #7289DA;
+    }
+    
+    .platform-badge-sc {
+      background: rgba(255,87,25,0.15);
+      color: #ff5719;
+    }
+    
+    .progress-bar {
+      height: 4px;
+      transition: width 0.3s ease;
+      background: var(--brand);
+    }
+  </style>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#5AC8FA',
+            accent: '#8b5cf6',
+            muted: '#98a2b3',
+            bg0: '#0b1017',
+            panel: 'rgba(18,24,33,0.7)'
+          },
+          borderRadius: {
+            xl: '16px'
+          },
+          boxShadow: {
+            glass: '0 10px 30px rgba(0,0,0,.35)'
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Google Sign-In API -->
+  <meta name="google-signin-client_id" content="YOUR_ACTUAL_GOOGLE_CLIENT_ID_HERE">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Top Navigation -->
+  <header class="p-4 flex items-center justify-between gap-4 sticky top-0 z-10 backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="glass-panel w-10 h-10 rounded-full flex items-center justify-center bg-brand/20">
+        <i data-feather="music" class="text-brand w-5 h-5"></i>
+      </div>
+      <h1 class="text-xl font-bold bg-gradient-to-r from-brand to-accent bg-clip-text text-transparent tracking-tighter">MR.FLEN</h1>
+    </div>
+    
+    <div class="flex-1 max-w-xl">
+      <div class="glass-panel flex items-center px-3">
+        <i data-feather="search" class="text-muted w-4 h-4"></i>
+        <input 
+          id="q"
+          type="search"
+          placeholder="Search music..."
+          class="search-input w-full bg-transparent py-3 px-3 outline-none text-sm"
+          aria-label="Search for music"
+          autocomplete="off"
+        />
+        <div class="hidden md:flex items-center rounded bg-bg0 px-1.5 py-0.5 text-xs text-muted">
+          ⌘K
+        </div>
       </div>
     </div>
+    
+    <div class="flex items-center gap-2">
+      <div id="authButtons" class="flex items-center gap-2">
+        <button id="connectSC" class="glass-panel flex items-center gap-1 px-3 py-2 text-sm hover:bg-panel/80 transition">
+          <i data-feather="link" class="w-4 h-4"></i>
+          <span>Connect SoundCloud</span>
+        </button>
+        <button id="connectGoogle" class="glass-panel flex items-center gap-1 px-3 py-2 text-sm hover:bg-panel/80 transition">
+          <i data-feather="log-in" class="w-4 h-4"></i>
+          <span>Sign in with Google</span>
+        </button>
+        <button id="connectInstagram" class="glass-panel flex items-center gap-1 px-3 py-2 text-sm hover:bg-panel/80 transition">
+          <i data-feather="instagram" class="w-4 h-4"></i>
+          <span>Connect Instagram</span>
+        </button>
+      </div>
+      <button id="libraryBtn" class="glass-panel px-3 py-2 hover:bg-panel/80 transition">
+        <i data-feather="list" class="w-5 h-5"></i>
+      </button>
+      <button id="settingsBtn" class="glass-panel px-3 py-2 hover:bg-panel/80 transition">
+        <i data-feather="settings" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </header>
 
-    <main class="grid" style="padding: 0 16px 140px">
-      <section id="refengineered-section">
-        <h2>ReFLENgineered</h2>
-        <div id="refengineered-list" class="grid"></div>
-      </section>
-      <section id="new-releases-section">
-        <h2>New Releases</h2>
-        <div class="row" style="align-items:center;gap:8px;">
-          <label for="month-select">Browse by month:</label>
-          <select id="month-select"></select>
-        </div>
-        <div id="new-releases-list" class="grid"></div>
-      </section>
-      <section id="search-section">
-        <h2>Search Results</h2>
-        <div id="results" class="grid"></div>
-      </section>
-    </main>
-
-    <footer
-      class="glass"
-      style="
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        padding: 8px;
-        margin: 16px;
-        display: grid;
-        gap: 8px;
-      "
+  <!-- Main Content -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 pb-24 max-w-7xl mx-auto w-full">
+    <!-- Hero Section -->
+    <section
+      id="heroSection"
+      class="glass-panel col-span-1 lg:col-span-2 overflow-hidden relative"
+      data-aos="fade-right"
+      aria-labelledby="heroTitle"
     >
-        <div class="row" style="justify-content: space-between">
-          <span id="queueLabel">Queue: 0</span>
-          <div class="row" style="gap: 4px">
-            <button id="showQueue" class="btn" aria-label="Show queue">📃</button>
-            <button id="shuffle" class="btn" aria-label="Shuffle">🔀</button>
-            <button id="prev" class="btn" aria-label="Previous">⏮</button>
-            <button id="next" class="btn" aria-label="Next">⏭</button>
+      <div class="absolute inset-0 bg-gradient-to-b from-black/40 to-black/80 z-0"></div>
+      <img
+        id="heroImage"
+        src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg"
+        alt="Midnight Vibes by Mr. FLEN"
+        class="absolute inset-0 w-full h-full object-cover z-0"
+        data-fallback-artwork="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg"
+      >
+      
+      <div class="relative z-10 p-6 flex flex-col justify-end h-96">
+        <div 
+          class="inline-block bg-black/40 px-3 py-1 rounded-full text-xs uppercase tracking-wider text-brand mb-3"
+          data-aos="fade-up"
+        >
+          Now Trending
+        </div>
+        <h1 id="heroTitle" class="text-3xl md:text-4xl font-bold" data-aos="fade-up" data-aos-delay="100">Midnight Vibes</h1>
+        <p id="heroArtist" class="text-muted" data-aos="fade-up" data-aos-delay="200">MR.FLEN</p>
+        
+        <div class="mt-6 flex items-center gap-4" data-aos="fade-up" data-aos-delay="300">
+          <button id="heroPlayButton" class="glass-panel w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-brand/10 transition">
+            <i data-feather="play" class="w-6 h-6 text-white"></i>
+          </button>
+          <button class="glass-panel px-4 py-2 flex items-center gap-2 text-sm hover:bg-panel/80 transition">
+            <i data-feather="plus" class="w-4 h-4"></i>
+            Add to Library
+          </button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Library Sidebar -->
+    <aside 
+      class="glass-panel" 
+      aria-label="Library"
+      data-aos="fade-left"
+    >
+      <div class="p-4 border-b border-white/5">
+        <h2 class="font-medium">Library</h2>
+      </div>
+      
+      <div class="tabs flex border-b border-white/5">
+        <button class="tab py-3 px-4 flex-1 text-center text-sm hover:bg-white/5 border-b-2 border-brand font-medium">
+          My Tracks
+        </button>
+        <button class="tab py-3 px-4 flex-1 text-center text-sm hover:bg-white/5 text-muted">
+          Liked
+        </button>
+        <button class="tab py-3 px-4 flex-1 text-center text-sm hover:bg-white/5 text-muted">
+          Reposts
+        </button>
+      </div>
+      
+      <ul id="libraryList" class="list p-2 space-y-1">
+        <li class="track-item glass-panel px-3 py-2 rounded-xl flex items-center gap-3 cursor-pointer group">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-brand/30 to-accent/30 overflow-hidden">
+            <img 
+              src="https://audius-content-4.cultur3stake.com/content/QmRfS6YgY3sM3b4Xhq2q9uS1XJ2xVdR5PcJz1KJj7yUZx2J/1400x1400.jpg" 
+              alt="Track artwork"
+              class="w-full h-full object-cover"
+            >
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium truncate">Neon Dreams</div>
+            <div class="text-xs text-muted truncate">MR.FLEN</div>
+          </div>
+          <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full group-hover:opacity-100 opacity-0 transition-opacity">
+            <i data-feather="play" class="w-4 h-4"></i>
+          </button>
+        </li>
+        
+        <li class="track-item glass-panel px-3 py-2 rounded-xl flex items-center gap-3 cursor-pointer group">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-brand/30 to-accent/30 flex items-center justify-center">
+            <i data-feather="music" class="text-brand w-5 h-5"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium truncate">Synthetic Echoes</div>
+            <div class="text-xs text-muted truncate">MR.FLEN</div>
+          </div>
+          <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full group-hover:opacity-100 opacity-0 transition-opacity">
+            <i data-feather="play" class="w-4 h-4"></i>
+          </button>
+        </li>
+        
+        <li class="track-item glass-panel px-3 py-2 rounded-xl flex items-center gap-3 cursor-pointer group">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-brand/30 to-accent/30 overflow-hidden">
+            <img 
+              src="https://audius-content-1.cultur3stake.com/content/QmXfV8YJj3Df1g5mXa1mFgK2PvV3XqJ8qW7jU9cFpG6zG3T/1400x1400.jpg" 
+              alt="Track artwork"
+              class="w-full h-full object-cover"
+            >
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium truncate">Digital Sunrise</div>
+            <div class="text-xs text-muted truncate">MR.FLEN</div>
+          </div>
+          <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full group-hover:opacity-100 opacity-0 transition-opacity">
+            <i data-feather="play" class="w-4 h-4"></i>
+          </button>
+        </li>
+      </ul>
+    </aside>
+    
+    <!-- Trending Tracks -->
+    <section 
+      class="glass-panel col-span-1 lg:col-span-3" 
+      data-aos="fade-up"
+      aria-labelledby="trendingTitle"
+    >
+      <div class="p-4 border-b border-white/5">
+        <h2 id="trendingTitle" class="font-medium flex items-center gap-2">
+          <i data-feather="trending-up" class="text-brand w-5 h-5"></i>
+          Trending on Audius
+        </h2>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+        <div class="glass-panel rounded-xl overflow-hidden group" data-aos="zoom-in" data-aos-delay="100">
+          <div class="aspect-square relative">
+            <img 
+              src="https://audius-content-9.cultur3stake.com/content/QmRfS6YgY3sM3b4Xhq2q9uS1XJ2xVdR5PcJz1KJj7yUZx2J/480x480.jpg" 
+              alt="Track artwork"
+              class="w-full h-full object-cover"
+            >
+            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-90"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4">
+              <div class="text-sm font-medium">Neon Dreams</div>
+              <div class="text-xs text-muted">MR.FLEN</div>
+            </div>
+            <button 
+              class="glass-panel w-12 h-12 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300"
+            >
+              <i data-feather="play" class="w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <div class="p-3 flex items-center justify-between">
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="play" class="w-3 h-3"></i>
+              <span>24.5k</span>
+            </div>
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="heart" class="w-3 h-3 text-rose-500/70"></i>
+              <span>3.1k</span>
+            </div>
           </div>
         </div>
-      <div id="playerContainer">
-        <div class="row">
-          <audio id="player" controls preload="none" style="flex:1"></audio>
-          <button id="mute-toggle" class="btn" aria-label="Mute" style="white-space:nowrap;">Mute</button>
+        
+        <div class="glass-panel rounded-xl overflow-hidden group" data-aos="zoom-in" data-aos-delay="200">
+          <div class="aspect-square relative">
+            <img 
+              src="https://audius-content-1.cultur3stake.com/content/QmRfS6YgY3sM3b4Xhq2q9uS1XJ2xVdR5PcJz1KJj7yUZx2J/480x480.jpg" 
+              alt="Track artwork"
+              class="w-full h-full object-cover"
+            >
+            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-90"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4">
+              <div class="text-sm font-medium">Luminous</div>
+              <div class="text-xs text-muted">MR.FLEN</div>
+            </div>
+            <button 
+              class="glass-panel w-12 h-12 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300"
+            >
+              <i data-feather="play" class="w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <div class="p-3 flex items-center justify-between">
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="play" class="w-3 h-3"></i>
+              <span>18.2k</span>
+            </div>
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="heart" class="w-3 h-3 text-rose-500/70"></i>
+              <span>2.4k</span>
+            </div>
+          </div>
         </div>
-        <div id="progressContainer" class="row" style="display:none">
-          <span id="currentTime">0:00</span>
-          <input type="range" id="progressBar" min="0" value="0" />
-          <span id="duration">0:00</span>
+        
+        <div class="glass-panel rounded-xl overflow-hidden group" data-aos="zoom-in" data-aos-delay="300">
+          <div class="aspect-square relative">
+            <img 
+              src="https://audius-content-3.cultur3stake.com/content/QmRfS6YgY3sM3b4Xhq2q9uS1XJ2xVdR5PcJz1KJj7yUZx2J/480x480.jpg" 
+              alt="Track artwork"
+              class="w-full h-full object-cover"
+            >
+            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-90"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4">
+              <div class="text-sm font-medium">Echo Chamber</div>
+              <div class="text-xs text-muted">MR.FLEN</div>
+            </div>
+            <button 
+              class="glass-panel w-12 h-12 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300"
+            >
+              <i data-feather="play" class="w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <div class="p-3 flex items-center justify-between">
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="play" class="w-3 h-3"></i>
+              <span>15.7k</span>
+            </div>
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="heart" class="w-3 h-3 text-rose-500/70"></i>
+              <span>1.8k</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="glass-panel rounded-xl overflow-hidden group" data-aos="zoom-in" data-aos-delay="400">
+          <div class="aspect-square relative">
+            <div class="w-full h-full bg-gradient-to-br from-brand/20 to-accent/40 flex items-center justify-center">
+              <i data-feather="music" class="text-white w-12 h-12 opacity-40"></i>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-90"></div>
+            <div class="absolute bottom-0 left-0 w-full p-4">
+              <div class="text-sm font-medium">Quantum Waves</div>
+              <div class="text-xs text-muted">MR.FLEN</div>
+            </div>
+            <button 
+              class="glass-panel w-12 h-12 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300"
+            >
+              <i data-feather="play" class="w-5 h-5"></i>
+            </button>
+          </div>
+          
+          <div class="p-3 flex items-center justify-between">
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="play" class="w-3 h-3"></i>
+              <span>12.9k</span>
+            </div>
+            <div class="text-xs flex items-center gap-1 text-muted">
+              <i data-feather="heart" class="w-3 h-3 text-rose-500/70"></i>
+              <span>1.2k</span>
+            </div>
+          </div>
         </div>
       </div>
-      </footer>
-      <div
-        id="queueModal"
-        class="glass"
-        style="display:none; position:fixed; right:16px; bottom:120px; width:260px; max-height:60vh; overflow:auto; padding:8px;"
+    </section>
+  </main>
+
+  <!-- Player Dock -->
+  <footer 
+    id="playerDock"
+    class="player-gradient glass-panel fixed bottom-0 left-0 right-0 mx-4 mb-4 p-3 rounded-xl z-30 flex items-center justify-between backdrop-blur-xl"
+  >
+    <div class="flex items-center gap-3 w-48">
+      <div class="w-14 h-14 rounded-lg overflow-hidden">
+        <img 
+          id="npArt"
+          src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg" 
+          alt="Now Playing"
+          class="w-full h-full object-cover"
+        >
+      </div>
+      <div>
+        <div id="npTitle" class="font-medium truncate w-28">Midnight Vibes</div>
+        <div id="npArtist" class="text-xs text-brand/90 truncate w-28">MR.FLEN</div>
+      </div>
+    </div>
+    
+    <div class="flex flex-col items-center flex-1 max-w-lg">
+      <div class="flex items-center gap-4">
+        <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+          <i data-feather="skip-back" class="w-4 h-4"></i>
+        </button>
+        <button 
+          id="playPauseBtn"
+          class="glass-panel w-12 h-12 flex items-center justify-center rounded-full bg-brand hover:bg-brand/90 transition"
+        >
+          <i data-feather="play" class="w-5 h-5 translate-x-px"></i>
+        </button>
+        <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+          <i data-feather="skip-forward" class="w-4 h-4"></i>
+        </button>
+      </div>
+      
+      <div class="w-full flex items-center gap-2 mt-2">
+        <span class="text-xs text-muted">0:00</span>
+        <div class="h-1 rounded-full bg-white/10 flex-1">
+          <div class="progress-bar w-1/3 h-full rounded-full"></div>
+        </div>
+        <span class="text-xs text-muted">3:42</span>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-3 w-48 justify-end">
+      <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+        <i data-feather="heart" class="w-4 h-4"></i>
+      </button>
+      <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+        <i data-feather="shuffle" class="w-4 h-4"></i>
+      </button>
+      <button 
+        id="expandPlayer"
+        class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition"
       >
-        <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <strong>Up Next</strong>
-          <button id="closeQueue" class="btn">✖</button>
-        </div>
-        <ul id="queueItems" style="list-style:none;padding:0;margin:0;"></ul>
-        <button id="savePlaylistBtn" class="btn" style="margin-top:8px;width:100%;">Save Playlist</button>
-        <div id="playlistSection" style="margin-top:8px;">
-          <strong>Playlists</strong>
-          <ul id="playlistList" style="list-style:none;padding:0;margin:4px 0 0 0;"></ul>
+        <i data-feather="maximize" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </footer>
+  
+  <!-- Full Player View (hidden by default) -->
+  <div 
+    id="fullPlayer"
+    class="hidden fixed inset-0 bg-bg0 z-50 flex flex-col"
+  >
+    <div class="p-4">
+      <button id="closePlayer" class="glass-panel w-8 h-8 flex items-center justify-center rounded-full">
+        <i data-feather="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    
+    <div class="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto px-4">
+      <div class="relative">
+        <img 
+          src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg" 
+          alt="Midnight Vibes Artwork"
+          class="rounded-3xl w-full max-w-md mx-auto shadow-2xl"
+        >
+        
+        <div class="absolute -inset-6 bg-gradient-to-tr from-brand/20 to-accent/40 blur-3xl opacity-30 rounded-3xl -z-10"></div>
+      </div>
+      
+      <div class="mt-8 text-center max-w-lg">
+        <h2 class="text-4xl md:text-5xl font-bold mb-2">Midnight Vibes</h2>
+        <p class="text-xl text-brand">MR.FLEN</p>
+        
+        <div class="mt-6 flex items-center justify-center gap-6">
+          <div class="flex flex-col items-center">
+            <div class="glass-panel w-12 h-12 rounded-full flex items-center justify-center mb-1">
+              <i data-feather="play" class="w-5 h-5"></i>
+            </div>
+            <span class="text-sm text-muted">24.5k</span>
+          </div>
+          
+          <div class="flex flex-col items-center">
+            <div class="glass-panel w-12 h-12 rounded-full flex items-center justify-center mb-1">
+              <i data-feather="heart" class="w-5 h-5 text-rose-500/70"></i>
+            </div>
+            <span class="text-sm text-muted">3.1k</span>
+          </div>
+          
+          <div class="flex flex-col items-center">
+            <div class="glass-panel w-12 h-12 rounded-full flex items-center justify-center mb-1">
+              <i data-feather="share-2" class="w-5 h-5"></i>
+            </div>
+            <span class="text-sm text-muted">Share</span>
+          </div>
         </div>
       </div>
-      <script src="format-time.js"></script>
-      <script src="public/sort-tracks.js"></script>
-      <script src="public/filter-tracks.js"></script>
-      <script src="public/drive.js"></script>
-      <script src="auth.js"></script>
-      <script src="public/queue-utils.js"></script>
-      <script src="spotify.js"></script>
-      <script src="public/search-preferences.js"></script>
-      <script type="module">
-      /**
-       * Audius REST integration for Mr.FLENs Music Finder.
-       *
-       * This script uses the public Audius API to search tracks and
-       * obtain stream URLs. It debounces search input and updates
-       * the result grid dynamically. To customise the look and feel,
-       * edit the CSS in the <style> block above.
-       */
+      
+      <div class="w-full mt-8 max-w-md">
+        <div class="flex items-center gap-4">
+          <span class="text-xs text-muted w-8">0:00</span>
+          <div class="h-2 rounded-full bg-white/10 flex-1">
+            <div class="progress-bar w-1/3 h-full rounded-full"></div>
+          </div>
+          <span class="text-xs text-muted w-8">3:42</span>
+        </div>
+        
+        <div class="flex items-center justify-center gap-8 mt-6">
+          <button class="glass-panel w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+            <i data-feather="skip-back" class="w-5 h-5"></i>
+          </button>
+          <button 
+            id="fullPlayerPlay"
+            class="glass-panel w-16 h-16 flex items-center justify-center rounded-full bg-brand hover:bg-brand/90 transition"
+          >
+            <i data-feather="play" class="w-6 h-6 translate-x-px"></i>
+          </button>
+          <button class="glass-panel w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/10 transition">
+            <i data-feather="skip-forward" class="w-5 h-5"></i>
+          </button>
+        </div>
+        
+        <div class="flex items-center justify-center gap-6 mt-8">
+          <button class="glass-panel px-4 py-2 flex items-center gap-2 rounded-full text-sm hover:bg-panel/80 transition">
+            <i data-feather="repeat" class="w-4 h-4"></i>
+          </button>
+          <button class="glass-panel px-4 py-2 flex items-center gap-2 rounded-full text-sm hover:bg-panel/80 transition">
+            <i data-feather="shuffle" class="w-4 h-4"></i>
+          </button>
+          <button class="glass-panel px-4 py-2 flex items-center gap-2 rounded-full text-sm bg-brand/20 hover:bg-brand/30 transition">
+            <i data-feather="heart" class="w-4 h-4"></i>
+            Like
+          </button>
+        </div>
+      </div>
+  </div>
+  </div>
 
-      if (typeof process === "undefined") {
-        window.process = { env: {} };
-      }
-      const env =
-        typeof process !== "undefined" && process.env ? process.env : {};
-      const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
-      const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734"; // public, read-only (ok in client)
-      const MRFLEN_AUDIUS_HANDLE = "Mr.FLEN";
-      const MRFLEN_SC_USERNAME = "mr-flen";
-      const SOUNDCLOUD_CLIENT_ID =
-        process?.env?.SOUNDCLOUD_CLIENT_ID || "";
-      const SOUND_CLOUD_ENABLED = Boolean(SOUNDCLOUD_CLIENT_ID);
-      const MRFLEN_SPOTIFY_ID = process?.env?.MRFLEN_SPOTIFY_ID || "";
-      if (!SOUND_CLOUD_ENABLED) {
-        const notice = document.createElement("div");
-        notice.className = "glass";
-        notice.style.padding = "16px";
-        notice.textContent = "⚠️ SoundCloud results unavailable.";
-        document
-          .getElementById("search-section")
-          .insertBefore(
-            notice,
-            document.getElementById("results")
-          );
-      }
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden">
+    <div id="settingsPanel" class="glass-panel p-6 w-80 opacity-0">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-medium">Settings</h2>
+        <button id="closeSettings" class="p-1 rounded hover:bg-white/10">
+          <i data-feather="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <label class="flex items-center justify-between">
+        <span class="text-sm">Light Theme</span>
+        <input id="themeToggle" type="checkbox" class="w-4 h-4">
+      </label>
+    </div>
+  </div>
+
+  <!-- Config -->
+  <script id="config" type="application/json">
+    {
+      "audiusKey": "922e6edcae9856000bf6814a1ee5745bfb57734",
+      "scClientId": "YOUR_ACTUAL_SOUNDCLOUD_CLIENT_ID_HERE",
+      "scRedirectUri": "https://your-actual-domain.com/soundcloud-callback",
+      "googleClientId": "YOUR_ACTUAL_GOOGLE_CLIENT_ID_HERE",
+      "googleRedirectUri": "https://your-actual-domain.com/google-callback",
+      "mrflens": { "audiusHandle": "mrflen", "soundcloudUsername": "Mr.FLEN" }
+    }
+  </script>
+  
+  <!-- Audius API Integration -->
+  <script>
+    const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734";
+    const AUDIUS_BASE_URL = "https://discoveryprovider.audius.co/v1";
+    
+    // Initialize animations and icons
+    document.addEventListener('DOMContentLoaded', async () => {
+      feather.replace();
+      AOS.init({
+        duration: 600,
+        easing: 'ease-out',
+        once: true
+      });
+
       // Theme setup
-      const { applyTheme, getSavedTheme, toggleTheme } = window.Theme;
-      applyTheme(getSavedTheme());
-      document.getElementById("theme-toggle").addEventListener("click", () => {
-        toggleTheme();
-      });
-      // pagination state for infinite scrolling
-      let currentQuery = "";
-      let currentOffset = 0;
-      const PAGE_LIMIT = 20;
-      let loadingMore = false;
-      let hasMore = false;
-      // BACKEND-ONLY (do NOT ship secrets to the browser):
-      // const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET";
-
-      async function pickHost() {
-        const res = await fetch("https://api.audius.co");
-        const { data } = await res.json();
-        return data[Math.floor(Math.random() * data.length)];
-      }
-
-      async function searchTracks(query, offset = 0, limit = PAGE_LIMIT) {
-        const host = await pickHost();
-        const url = `${host}/v1/tracks/search?query=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
-        const res = await fetch(url, {
-          headers: { Accept: "application/json" },
-        });
-        const json = await res.json();
-        return json.data || [];
-      }
-
-      async function searchSoundCloud(query, offset = 0, limit = PAGE_LIMIT) {
-        if (!SOUND_CLOUD_ENABLED) throw new Error("sc");
-        const url = `https://api.soundcloud.com/tracks?client_id=${SOUNDCLOUD_CLIENT_ID}&q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("sc");
-        const json = await res.json();
-        return json;
-      }
-
-      async function streamUrl(trackId) {
-        const host = await pickHost();
-        return `${host}/v1/tracks/${trackId}/stream?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
-      }
-
-      async function trendingTracks(genre) {
-        const host = await pickHost();
-        const genreParam = genre ? `&genre=${encodeURIComponent(genre)}` : "";
-        const url = `${host}/v1/tracks/trending?limit=5${genreParam}&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
-        const res = await fetch(url, {
-          headers: { Accept: "application/json" },
-        });
-        const json = await res.json();
-        return (json.data || []).map(normalizeAudiusTrack);
-      }
-
-      async function genreTracks(genre, sort) {
-        const host = await pickHost();
-        const genreParam = genre ? `&genre=${encodeURIComponent(genre)}` : "";
-        const sortParam = sort === 'latest' ? 'release_date' : 'plays';
-        const url = `${host}/v1/tracks?limit=5${genreParam}&sort=${sortParam}&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
-        const res = await fetch(url, { headers: { Accept: "application/json" } });
-        const json = await res.json();
-        return (json.data || []).map(normalizeAudiusTrack);
-      }
-
-      async function fetchUserId(handle) {
-        const host = await pickHost();
-        const url = `${host}/v1/users/handle/${encodeURIComponent(handle)}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
-        const res = await fetch(url, { headers: { Accept: 'application/json' } });
-        const json = await res.json();
-        return json.data && json.data.id;
-      }
-
-      async function fetchUserTracks(handle) {
-        const userId = await fetchUserId(handle);
-        if (!userId) return [];
-        const host = await pickHost();
-        const url = `${host}/v1/users/${userId}/tracks?limit=200&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
-        const res = await fetch(url, { headers: { Accept: 'application/json' } });
-        const json = await res.json();
-        return json.data || [];
-      }
-
-      async function trendingPlaylists() {
-        const host = await pickHost();
-        const url = `${host}/v1/playlists/trending?limit=5&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
-        const res = await fetch(url, {
-          headers: { Accept: "application/json" },
-        });
-        const json = await res.json();
-        return json.data || [];
-      }
-
-      async function latestRelease() {
-        const tracks = await searchTracks(MRFLEN_AUDIUS_HANDLE);
-        return tracks[0] ? normalizeAudiusTrack(tracks[0]) : null;
-
-        async function fetchPlaylist(id) {
-          const host = await pickHost();
-          const url = `${host}/v1/playlists/${id}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
-          const res = await fetch(url, {
-            headers: { Accept: "application/json" },
+      if (window.Theme) {
+        const { applyTheme, getSavedTheme, toggleTheme } = window.Theme;
+        applyTheme(getSavedTheme());
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+          themeToggle.checked = getSavedTheme() === 'light';
+          themeToggle.addEventListener('change', () => {
+            const mode = toggleTheme();
+            themeToggle.checked = mode === 'light';
           });
-          const json = await res.json();
-          return json.data || null;
         }
       }
-
-      function renderFeatured(track) {
-        if (!track) return "";
-        return `
-    <a href="track.html?platform=${track.platform}&id=${track.id}" class="glass featured" style="display:block;text-decoration:none;color:inherit">
-      <img src="${track.artwork}" alt="artwork" />
-      <div style="padding:16px">
-        <div style="font-weight:700">${track.title || ""}</div>
-        <div style="opacity:.7">@${track.user.handle}</div>
-      </div>
-    </a>`;
-      }
-
-      function normalizeAudiusTrack(t) {
-        return {
-          platform: "audius",
-          id: t.id,
-          title: t.title,
-          artwork:
-            (t.artwork && (t.artwork["150x150"] || t.artwork["480x480"])) || "",
-          user: { handle: t.user && t.user.handle ? t.user.handle : "" },
-          plays: t.play_count || 0,
-          likes: t.favorite_count || 0,
-          genre: t.genre || '',
-          createdAt: t.release_date || t.created_at || '',
-        };
-      }
-
-      function normalizeSoundCloudTrack(t) {
-        return {
-          platform: "soundcloud",
-          id: t.id,
-          title: t.title,
-          artwork: t.artwork_url || "",
-          permalink_url: t.permalink_url,
-          user: { handle: t.user && t.user.username ? t.user.username : "" },
-          plays: t.playback_count || 0,
-          likes: t.likes_count || t.favoritings_count || 0,
-          genre: t.genre || '',
-          createdAt: t.created_at || '',
-        };
-      }
-
-      const LIKED_KEY = 'likedTracks';
-      const PLAYLIST_KEY = 'customPlaylists';
-
-      let likedTracks = [];
-      let customPlaylists = [];
-      let searchAllArtists = window.SearchPreferences.getSearchAll();
-
-      function loadPreferences() {
-        try {
-          return {
-            liked: JSON.parse(localStorage.getItem(LIKED_KEY)) || [],
-            playlists: JSON.parse(localStorage.getItem(PLAYLIST_KEY)) || [],
-          };
-        } catch {
-          return { liked: [], playlists: [] };
-        }
-      }
-
-      function savePreferences() {
-        try {
-          localStorage.setItem(LIKED_KEY, JSON.stringify(likedTracks));
-          localStorage.setItem(
-            PLAYLIST_KEY,
-            JSON.stringify(customPlaylists)
-          );
-        } catch {
-          // Ignore storage write errors
-        }
-      }
-
-      function isLiked(track) {
-        return likedTracks.some(
-          (t) => t.id === track.id && t.platform === track.platform
-        );
-      }
-
-      function toggleLike(track) {
-        if (isLiked(track)) {
-          likedTracks = likedTracks.filter(
-            (t) => !(t.id === track.id && t.platform === track.platform)
-          );
-        } else {
-          likedTracks.push(track);
-        }
-        savePreferences();
-      }
-
-      function savePlaylist(pl) {
-        const idx = customPlaylists.findIndex((p) => p.name === pl.name);
-        if (idx > -1) customPlaylists[idx] = pl;
-        else customPlaylists.push(pl);
-        savePreferences();
-      }
-
-      ({ liked: likedTracks, playlists: customPlaylists } = loadPreferences());
-
-      /** UI wiring **/
-
-      const results = document.querySelector("#results");
-      const refengineeredList = document.querySelector("#refengineered-list");
-      const newReleasesList = document.querySelector("#new-releases-list");
-      const monthSelect = document.getElementById("month-select");
-      let audioPlayer = document.querySelector("#player");
-      const muteBtn = document.getElementById("mute-toggle");
-      const search = document.querySelector("#search");
-      const allArtistsToggle = document.querySelector("#all-artists-toggle");
-      const login = document.querySelector("#login");
-      const loginModal = document.querySelector("#login-modal");
-      const fbLoginBtn = document.querySelector("#fb-login-btn");
-      const instaLoginBtn = document.querySelector("#insta-login-btn");
-      const xLoginBtn = document.querySelector("#x-login-btn");
-      const snapLoginBtn = document.querySelector("#snap-login-btn");
-      const tiktokLoginBtn = document.querySelector("#tiktok-login-btn");
-      const closeLogin = document.querySelector("#close-login");
-      (function initGoogle() {
-        if (!initGoogleAuth()) setTimeout(initGoogle, 100);
-      })();
-        const nextBtn = document.querySelector("#next");
-        const prevBtn = document.querySelector("#prev");
-        const shuffleBtn = document.querySelector("#shuffle");
-        const queueLabel = document.querySelector("#queueLabel");
-        const showQueueBtn = document.getElementById("showQueue");
-        const queueModal = document.getElementById("queueModal");
-        const queueItems = document.getElementById("queueItems");
-        const closeQueueBtn = document.getElementById("closeQueue");
-        const savePlaylistBtn = document.getElementById("savePlaylistBtn");
-        const playlistList = document.getElementById("playlistList");
-        const genresEl = document.querySelector("#genres");
-        const {
-          addToQueue,
-          removeFromQueue,
-          moveInQueue,
-          adjustIndexOnRemove,
-          previousIndex,
-        } = queueUtils;
-      let progressContainer;
-      let progressBar;
-      let currentTimeEl;
-      let durationEl;
-
-      function updateMuteButton() {
-        if (!audioPlayer) return;
-        muteBtn.textContent = audioPlayer.muted ? "Unmute" : "Mute";
-      }
-
-      muteBtn.addEventListener("click", () => {
-        if (!audioPlayer) return;
-        audioPlayer.muted = !audioPlayer.muted;
-        updateMuteButton();
+      // Settings modal animations
+      const settingsModal = document.getElementById('settingsModal');
+      const settingsPanel = document.getElementById('settingsPanel');
+      document.getElementById('settingsBtn').addEventListener('click', () => {
+        settingsModal.classList.remove('hidden');
+        anime({
+          targets: '#settingsPanel',
+          opacity: [0, 1],
+          translateY: [-20, 0],
+          duration: 300,
+          easing: 'easeOutQuad'
+        });
       });
-
-      document.addEventListener("keydown", (e) => {
-        if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
-        if (!audioPlayer) return;
-        if (e.code === "Space") {
-          e.preventDefault();
-          if (audioPlayer.paused) {
-            audioPlayer.play();
-          } else {
-            audioPlayer.pause();
-          }
-        }
-        if (e.key === "m" || e.key === "M") {
-          audioPlayer.muted = !audioPlayer.muted;
-          updateMuteButton();
-        }
+      document.getElementById('closeSettings').addEventListener('click', closeSettings);
+      settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) closeSettings();
       });
-
-      function cacheProgressEls() {
-        progressContainer = document.getElementById("progressContainer");
-        progressBar = document.getElementById("progressBar");
-        currentTimeEl = document.getElementById("currentTime");
-        durationEl = document.getElementById("duration");
+      function closeSettings() {
+        anime({
+          targets: '#settingsPanel',
+          opacity: [1, 0],
+          translateY: [0, -20],
+          duration: 200,
+          easing: 'easeInQuad',
+          complete: () => settingsModal.classList.add('hidden')
+        });
       }
-
-      cacheProgressEls();
-
-      function attachPlayer(player) {
-        audioPlayer = player;
-        if (!player) {
-          if (progressContainer) progressContainer.style.display = "none";
+      
+      // Player expansion toggle
+      document.getElementById('expandPlayer').addEventListener('click', () => {
+        document.getElementById('playerDock').classList.add('hidden');
+        document.getElementById('fullPlayer').classList.remove('hidden');
+      });
+      
+      document.getElementById('closePlayer').addEventListener('click', () => {
+        document.getElementById('playerDock').classList.remove('hidden');
+        document.getElementById('fullPlayer').classList.add('hidden');
+      });
+      
+      // Check for OAuth callback parameters (if we're returning from an OAuth flow)
+      checkForOAuthCallback();
+      
+      // Set up SoundCloud connection
+      setupSoundCloudAuth();
+      
+      // Set up Google authentication
+      setupGoogleAuth();
+      
+      // Fetch trending tracks from Audius
+      await fetchTrendingTracks();
+      
+      // Fetch Mr.FLEN tracks
+      await fetchMrFlenTracks();
+      
+      // Set up search functionality
+      setupSearch();
+    });
+    
+    // Check if we're returning from an OAuth flow and handle the response
+    function checkForOAuthCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      const error = urlParams.get('error');
+      
+      // Handle SoundCloud callback
+      if (urlParams.has('code') && window.location.pathname.includes('soundcloud-callback')) {
+        const storedState = sessionStorage.getItem('sc_oauth_state');
+        
+        // Validate state parameter to prevent CSRF
+        if (state !== storedState) {
+          console.error('State parameter mismatch in SoundCloud OAuth');
           return;
         }
-        progressContainer.style.display = "flex";
-        progressBar.value = 0;
-        currentTimeEl.textContent = "0:00";
-        durationEl.textContent = "0:00";
-        player.addEventListener("timeupdate", () => {
-          progressBar.value = player.currentTime;
-          currentTimeEl.textContent = formatTime(player.currentTime);
-        });
-        player.addEventListener("loadedmetadata", () => {
-          progressBar.max = player.duration;
-          durationEl.textContent = formatTime(player.duration);
-        });
-        progressBar.oninput = (e) => {
-          player.currentTime = e.target.value;
-        };
-        updateMuteButton();
+        
+        // Clear state from storage
+        sessionStorage.removeItem('sc_oauth_state');
+        
+        // Exchange code for access token (this should be done server-side)
+        console.log('SoundCloud authorization code received:', code);
+        // In a real implementation, you would send this to your backend
+        alert('SoundCloud connected successfully!');
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
+      
+      // Handle Google callback
+      if (urlParams.has('code') && window.location.pathname.includes('google-callback')) {
+        const storedState = sessionStorage.getItem('google_oauth_state');
+        
+        // Validate state parameter to prevent CSRF
+        if (state !== storedState) {
+          console.error('State parameter mismatch in Google OAuth');
+          return;
+        }
+        
+        // Clear state from storage
+        sessionStorage.removeItem('google_oauth_state');
+        sessionStorage.removeItem('google_oauth_nonce');
+        
+        // Exchange code for access token (this should be done server-side)
+        console.log('Google authorization code received:', code);
+        // In a real implementation, you would send this to your backend
+        alert('Google authentication successful!');
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      
+      // Handle OAuth errors
+      if (error) {
+        console.error('OAuth error:', error, urlParams.get('error_description'));
+        alert(`Authentication error: ${error}`);
+        
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+    
+    // Fetch trending tracks from Audius
+    async function fetchTrendingTracks() {
+      try {
+        const response = await fetch(`${AUDIUS_BASE_URL}/tracks/trending?app_name=MrFLEN`, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch trending tracks');
+        
+        const data = await response.json();
+        const trendingContainer = document.querySelector(
+          'section[aria-labelledby="trendingTitle"] .grid.grid-cols-1'
+        );
 
-      attachPlayer(null);
+        if (!trendingContainer) {
+          console.warn('Trending section container not found.');
+          return;
+        }
 
-      allArtistsToggle.checked = searchAllArtists;
-      allArtistsToggle.addEventListener("change", () => {
-        searchAllArtists = allArtistsToggle.checked;
-        window.SearchPreferences.setSearchAll(searchAllArtists);
-        if (search.value.trim()) search.dispatchEvent(new Event("input"));
-      });
+        if (data.data && data.data.length > 0) {
+          trendingContainer.innerHTML = '';
 
-        const { handleAuthSuccess, exchangeCodeForToken } = window;
-        const GENRES = ["All", "UKG", "Grime", "House", "Deep House", "DNB"];
-        let currentGenre = null;
-        let currentSort = 'trending';
-        if (window.location.hash.includes("access_token")) {
-          const params = new URLSearchParams(window.location.hash.substring(1));
-          const token = params.get("access_token");
-          const provider = params.get("state");
-          if (token && provider) handleAuthSuccess(provider, token);
-          window.location.hash = "";
-        } else {
-          const params = new URLSearchParams(window.location.search);
-          const code = params.get("code");
-          const provider = params.get("state");
-          if (code && provider) {
-            exchangeCodeForToken(provider, code)
-              .then((tok) => handleAuthSuccess(provider, tok))
-              .catch((err) => console.error('Auth exchange failed', err))
-              .finally(() => {
-                const url = new URL(window.location.href);
-                url.searchParams.delete('code');
-                url.searchParams.delete('state');
-                window.history.replaceState({}, '', url.pathname + url.search);
+          data.data.slice(0, 4).forEach((track, index) => {
+            const trackElement = createTrackCard(track, index);
+            trendingContainer.appendChild(trackElement);
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching trending tracks:', error);
+      }
+    }
+    
+    // Fetch Mr.FLEN tracks
+    async function fetchMrFlenTracks() {
+      try {
+        // First, get Mr.FLEN user ID
+        const userResponse = await fetch(`${AUDIUS_BASE_URL}/users/search?query=mrflen&app_name=MrFLEN`, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!userResponse.ok) throw new Error('Failed to search for Mr.FLEN');
+        
+        const userData = await userResponse.json();
+        if (userData.data && userData.data.length > 0) {
+          const mrFlenUser = userData.data[0];
+          
+          // Get tracks by Mr.FLEN
+          const tracksResponse = await fetch(`${AUDIUS_BASE_URL}/users/${mrFlenUser.id}/tracks?app_name=MrFLEN`, {
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (!tracksResponse.ok) throw new Error('Failed to fetch Mr.FLEN tracks');
+          
+          const tracksData = await tracksResponse.json();
+          const libraryList = document.getElementById('libraryList');
+          
+          if (tracksData.data && tracksData.data.length > 0) {
+            libraryList.innerHTML = '';
+            
+            tracksData.data.slice(0, 3).forEach(track => {
+              const listItem = createLibraryListItem(track);
+              libraryList.appendChild(listItem);
+            });
+            
+            // Update hero section with the first track
+            updateHeroSection(tracksData.data[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Mr.FLEN tracks:', error);
+      }
+    }
+    
+    // Create track card for trending section
+    function createTrackCard(track, index) {
+      const card = document.createElement('div');
+      card.className = 'glass-panel rounded-xl overflow-hidden group';
+      card.setAttribute('data-aos', 'zoom-in');
+      card.setAttribute('data-aos-delay', `${(index + 1) * 100}`);
+      
+      const artworkUrl = track.artwork && track.artwork['480x480'] 
+        ? track.artwork['480x480'] 
+        : 'https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg';
+      
+      card.innerHTML = `
+        <div class="aspect-square relative">
+          <img 
+            src="${artworkUrl}" 
+            alt="${track.title}"
+            class="w-full h-full object-cover"
+          >
+          <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-90"></div>
+          <div class="absolute bottom-0 left-0 w-full p-4">
+            <div class="text-sm font-medium">${track.title}</div>
+            <div class="text-xs text-muted">${track.user.name}</div>
+          </div>
+          <button 
+            class="glass-panel w-12 h-12 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 transition-all duration-300"
+            onclick="playTrack('${track.id}', '${track.title}', '${track.user.name}', '${artworkUrl}')"
+          >
+            <i data-feather="play" class="w-5 h-5"></i>
+          </button>
+        </div>
+        
+        <div class="p-3 flex items-center justify-between">
+          <div class="text-xs flex items-center gap-1 text-muted">
+            <i data-feather="play" class="w-3 h-3"></i>
+            <span>${track.play_count ? Math.round(track.play_count / 1000) + 'k' : '0'}</span>
+          </div>
+          <div class="text-xs flex items-center gap-1 text-muted">
+            <i data-feather="heart" class="w-3 h-3 text-rose-500/70"></i>
+            <span>${track.favorite_count ? Math.round(track.favorite_count / 1000) + 'k' : '0'}</span>
+          </div>
+        </div>
+      `;
+      
+      return card;
+    }
+    
+    // Create library list item
+    function createLibraryListItem(track) {
+      const li = document.createElement('li');
+      li.className = 'track-item glass-panel px-3 py-2 rounded-xl flex items-center gap-3 cursor-pointer group';
+      
+      const artworkUrl = track.artwork && track.artwork['150x150'] 
+        ? track.artwork['150x150'] 
+        : 'https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg';
+      
+      li.innerHTML = `
+        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-brand/30 to-accent/30 overflow-hidden">
+          <img 
+            src="${artworkUrl}" 
+            alt="${track.title}"
+            class="w-full h-full object-cover"
+          >
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-medium truncate">${track.title}</div>
+          <div class="text-xs text-muted truncate">${track.user.name}</div>
+        </div>
+        <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full group-hover:opacity-100 opacity-0 transition-opacity"
+                onclick="playTrack('${track.id}', '${track.title}', '${track.user.name}', '${artworkUrl}')">
+          <i data-feather="play" class="w-4 h-4"></i>
+        </button>
+      `;
+      
+      return li;
+    }
+    
+    // Update hero section with track data
+    function updateHeroSection(track) {
+      if (!track) return;
+
+      const heroTitle = document.getElementById('heroTitle');
+      const heroImage = document.getElementById('heroImage');
+      const heroArtist = document.getElementById('heroArtist');
+      const playButton = document.getElementById('heroPlayButton');
+      const fallbackArtwork = heroImage?.dataset?.fallbackArtwork
+        || 'https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg';
+
+      if (heroTitle) heroTitle.textContent = track.title || 'Untitled';
+      if (heroArtist) heroArtist.textContent = track.user?.name || 'Unknown Artist';
+
+      const artwork = (track.artwork && track.artwork['480x480']) || fallbackArtwork;
+      if (heroImage) heroImage.src = artwork;
+
+      if (playButton) {
+        playButton.onclick = () => playTrack(
+          track.id,
+          track.title,
+          track.user?.name || 'Unknown Artist',
+          artwork
+        );
+      }
+    }
+    
+    // Play track function
+    function playTrack(trackId, title, artist, artwork) {
+      // Update player UI
+      document.getElementById('npTitle').textContent = title;
+      document.getElementById('npArtist').textContent = artist;
+      document.getElementById('npArt').src = artwork;
+      
+      // Show playing state
+      const playButton = document.getElementById('playPauseBtn');
+      playButton.innerHTML = '<i data-feather="pause" class="w-5 h-5"></i>';
+      feather.replace();
+      
+      // Fetch and play stream
+      fetch(`${AUDIUS_BASE_URL}/tracks/${trackId}/stream?app_name=MrFLEN`)
+        .then(response => {
+          if (response.ok) {
+            const audio = document.getElementById('audio');
+            audio.src = response.url;
+            audio.play();
+            
+            // Set up Media Session API
+            if ('mediaSession' in navigator) {
+              navigator.mediaSession.metadata = new MediaMetadata({
+                title: title,
+                artist: artist,
+                artwork: [
+                  { src: artwork, sizes: '96x96', type: 'image/jpeg' },
+                  { src: artwork, sizes: '128x128', type: 'image/jpeg' },
+                  { src: artwork, sizes: '192x192', type: 'image/jpeg' },
+                  { src: artwork, sizes: '256x256', type: 'image/jpeg' },
+                  { src: artwork, sizes: '384x384', type: 'image/jpeg' },
+                  { src: artwork, sizes: '512x512', type: 'image/jpeg' },
+                ]
               });
+              
+              navigator.mediaSession.setActionHandler('play', () => audio.play());
+              navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+            }
           }
-        }
-        GENRES.forEach((g) => {
-        const chip = document.createElement("button");
-        chip.textContent = g;
-        chip.className = "chip" + (g === "All" ? " active" : "");
-        chip.onclick = () => {
-          currentGenre = g === "All" ? null : g;
-          Array.from(genresEl.children).forEach((c) =>
-            c.classList.remove("active"),
-          );
-          chip.classList.add("active");
-          loadHome(currentGenre);
-        };
-        genresEl.appendChild(chip);
+        })
+        .catch(error => {
+          console.error('Error playing track:', error);
+        });
+    }
+    
+    // Set up SoundCloud authentication with proper OAuth 2.0 flow
+    function setupSoundCloudAuth() {
+      const connectSCButton = document.getElementById('connectSC');
+      
+      connectSCButton.addEventListener('click', () => {
+        // SoundCloud OAuth 2.0 flow - compliant with security policies
+        const config = JSON.parse(document.getElementById('config').textContent);
+        const clientId = config.scClientId;
+        const redirectUri = encodeURIComponent(config.scRedirectUri);
+        const scope = encodeURIComponent('non-expiring');
+        const responseType = 'code';
+        const state = generateStateParameter(); // CSRF protection
+        
+        // Store state in session storage for validation
+        sessionStorage.setItem('sc_oauth_state', state);
+        
+        const authUrl = `https://soundcloud.com/connect?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&state=${state}`;
+        
+        // Redirect to SoundCloud auth (not popup for better security)
+        window.location.href = authUrl;
+        
+        // For demo purposes, we'll also simulate storing user data
+        // In a real implementation, you would get this from the OAuth response
+        setTimeout(() => {
+          const user = {
+            id: 'sc_' + Date.now(),
+            name: 'SoundCloud User',
+            username: 'soundcloud_user',
+            avatar: 'https://via.placeholder.com/150',
+            provider: 'soundcloud',
+            connectedAt: new Date().toISOString()
+          };
+          
+          saveUserData(user);
+        }, 1000);
       });
-      const sortSelect = document.getElementById('sort-select');
-      sortSelect.addEventListener('change', () => {
-        currentSort = sortSelect.value;
-        if (currentQuery) {
-          performSearch(currentQuery);
-        } else {
-          loadHome(currentGenre);
-        }
+    }
+    
+    // Generate secure state parameter for OAuth
+    function generateStateParameter() {
+      const array = new Uint32Array(10);
+      window.crypto.getRandomValues(array);
+      return Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
+    }
+    
+    // Set up Instagram authentication
+    function setupInstagramAuth() {
+      const connectInstagramButton = document.getElementById('connectInstagram');
+      
+      connectInstagramButton.addEventListener('click', () => {
+        // For demo purposes, we'll simulate Instagram authentication
+        // In a real implementation, you would use Instagram's OAuth flow
+        const user = {
+          id: 'insta_' + Date.now(),
+          name: 'Instagram User',
+          username: 'instagram_user',
+          avatar: 'https://via.placeholder.com/150',
+          provider: 'instagram',
+          connectedAt: new Date().toISOString()
+        };
+        
+        saveUserData(user);
+        alert('Instagram connected successfully! (Demo mode)');
       });
-
-        const trackCache = {};
-        let queue = [];
-        let currentIndex = -1;
-
-        function renderQueue() {
-          queueItems.innerHTML = queue
-            .map(
-              (t, i) =>
-                `<li class="row" data-idx="${i}" style="justify-content:space-between;align-items:center;margin-bottom:4px;">
-                  <span style="flex:1">${t.title || ''}</span>
-                  <div class="row" style="gap:4px;">
-                    <button class="btn up" data-idx="${i}">⬆️</button>
-                    <button class="btn down" data-idx="${i}">⬇️</button>
-                    <button class="btn remove" data-idx="${i}">✖️</button>
-                  </div>
-                </li>`
-            )
-            .join('');
-        }
-
-        function updateQueue() {
-          queueLabel.textContent = `Queue: ${queue.length}`;
-          if (queueModal.style.display !== 'none') renderQueue();
-        }
-
-        function renderPlaylists() {
-          playlistList.innerHTML = customPlaylists
-            .map(
-              (p, i) =>
-                `<li class="row" data-idx="${i}" style="justify-content:space-between;align-items:center;margin-bottom:4px;">
-                  <span style="flex:1">${p.name}</span>
-                  <div class="row" style="gap:4px;">
-                    <button class="btn load" data-idx="${i}">▶</button>
-                    <button class="btn del" data-idx="${i}">🗑</button>
-                  </div>
-                </li>`
-            )
-            .join('');
-        }
-
-        showQueueBtn.onclick = () => {
-          queueModal.style.display = 'block';
-          renderQueue();
-          renderPlaylists();
-        };
-        closeQueueBtn.onclick = () => (queueModal.style.display = 'none');
-
-        queueItems.onclick = (e) => {
-          const idx = Number(e.target.dataset.idx);
-          if (Number.isNaN(idx)) return;
-          if (e.target.classList.contains('remove')) {
-            queue = removeFromQueue(queue, idx);
-            currentIndex = adjustIndexOnRemove(currentIndex, idx);
-            if (currentIndex >= queue.length) currentIndex = queue.length - 1;
-            updateQueue();
-          } else if (e.target.classList.contains('up')) {
-            queue = moveInQueue(queue, idx, idx - 1);
-            updateQueue();
-          } else if (e.target.classList.contains('down')) {
-            queue = moveInQueue(queue, idx, idx + 1);
-            updateQueue();
-          }
-        };
-
-        savePlaylistBtn.onclick = () => {
-          if (!queue.length) return;
-          const name = prompt('Playlist name?');
-          if (!name) return;
-          savePlaylist({ name, tracks: queue.slice() });
-          renderPlaylists();
-        };
-
-        playlistList.onclick = (e) => {
-          const idx = Number(e.target.dataset.idx);
-          if (Number.isNaN(idx)) return;
-          if (e.target.classList.contains('load')) {
-            const pl = customPlaylists[idx];
-            queue = pl.tracks.slice();
-            currentIndex = -1;
-            queueModal.style.display = 'none';
-            updateQueue();
-          } else if (e.target.classList.contains('del')) {
-            customPlaylists.splice(idx, 1);
-            savePreferences();
-            renderPlaylists();
-          }
-        };
-
-      async function playTrack(track) {
-        const container = document.querySelector("#playerContainer");
-        if (track.platform === "soundcloud") {
-          const res = await fetch(
-            `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(track.permalink_url)}`,
-          );
-          const { html } = await res.json();
-          container.innerHTML = html;
-          cacheProgressEls();
-          audioPlayer = null;
-          attachPlayer(null);
-        } else {
-          container.innerHTML = `
-            <audio id="player" controls preload="none" style="width:100%"></audio>
-            <div id="progressContainer" class="row" style="display:none">
-              <span id="currentTime">0:00</span>
-              <input type="range" id="progressBar" min="0" value="0" />
-              <span id="duration">0:00</span>
-            </div>`;
-          cacheProgressEls();
-          audioPlayer = document.querySelector("#player");
-          attachPlayer(audioPlayer);
-          let url = '';
-          if (track.platform === "spotify") {
-            url = track.streamUrl;
-          } else {
-            url = await streamUrl(track.id);
-          }
-          audioPlayer.src = url;
-          await audioPlayer.play();
-          audioPlayer.addEventListener("ended", () => nextBtn.onclick(), {
-            once: true,
-          });
-        }
-      }
-
-      function renderTracksList(list, includeLink = false) {
-        return list
-          .map((t) => {
-            trackCache[`${t.platform}:${t.id}`] = t;
-            const buttons = [
-              `<button data-platform="${t.platform}" data-id="${t.id}" class="btn play">▶</button>`,
-            ];
-            if (t.platform !== "soundcloud")
-              buttons.push(
-                `<button data-platform="${t.platform}" data-id="${t.id}" class="btn queue">➕</button>`,
-              );
-            buttons.push(
-              `<button data-platform="${t.platform}" data-id="${t.id}" class="btn like">${isLiked(t) ? "♥" : "♡"}</button>`,
-            );
-            if (includeLink)
-              buttons.push(
-                `<a href="track.html?platform=${t.platform}&id=${t.id}" class="btn">Go To Track</a>`,
-              );
-            const cols = `72px 1fr${" auto".repeat(buttons.length)}`;
-            const badge = `<span class="pill">${
-              t.platform === "audius"
-                ? "Audius"
-                : t.platform === "soundcloud"
-                ? "SoundCloud"
-                : "Spotify"
-            }</span>`;
-            return `
-      <div class="glass track-card" style="grid-template-columns:${cols};">
-        <img src="${t.artwork}" width="72" height="72" loading="lazy" alt="artwork" />
-        <div>
-          <div style="font-weight:700">${t.title || ""}</div>
-          <div style="opacity:.7">@${t.user.handle} ${badge}</div>
-          <div style="font-size:12px;opacity:.7">▶ ${t.plays} ♥ ${t.likes}</div>
+    }
+    
+    // Set up Google authentication with proper OAuth 2.0 flow
+    function setupGoogleAuth() {
+      const connectGoogleButton = document.getElementById('connectGoogle');
+      
+      connectGoogleButton.addEventListener('click', () => {
+        // Google OAuth 2.0 flow - compliant with security policies
+        const config = JSON.parse(document.getElementById('config').textContent);
+        const clientId = config.googleClientId;
+        const redirectUri = encodeURIComponent(config.googleRedirectUri);
+        const scope = encodeURIComponent('email profile');
+        const responseType = 'code';
+        const state = generateStateParameter(); // CSRF protection
+        const nonce = generateStateParameter(); // Replay attack protection
+        
+        // Store state and nonce in session storage for validation
+        sessionStorage.setItem('google_oauth_state', state);
+        sessionStorage.setItem('google_oauth_nonce', nonce);
+        
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}&state=${state}&nonce=${nonce}&prompt=select_account`;
+        
+        // Redirect to Google auth (not popup for better security)
+        window.location.href = authUrl;
+        
+        // For demo purposes, we'll also simulate storing user data
+        // In a real implementation, you would get this from the OAuth response
+        setTimeout(() => {
+          const user = {
+            id: 'google_' + Date.now(),
+            name: 'Google User',
+            email: 'user@gmail.com',
+            avatar: 'https://via.placeholder.com/150',
+            provider: 'google',
+            connectedAt: new Date().toISOString()
+          };
+          
+          saveUserData(user);
+        }, 1000);
+      });
+    }
+    
+    // Set up search functionality
+    function setupSearch() {
+      const searchInput = document.getElementById('q');
+      const searchButton = document.querySelector('.search-input + div');
+      const mainContent = document.querySelector('main');
+      
+      // Create search results container (initially hidden)
+      const searchResultsContainer = document.createElement('div');
+      searchResultsContainer.id = 'searchResults';
+      searchResultsContainer.className = 'glass-panel col-span-1 lg:col-span-3 hidden';
+      searchResultsContainer.innerHTML = `
+        <div class="p-4 border-b border-white/5 flex items-center justify-between">
+          <h2 class="font-medium flex items-center gap-2">
+            <i data-feather="search" class="text-brand w-5 h-5"></i>
+            Search Results
+          </h2>
+          <button id="clearSearch" class="glass-panel px-3 py-1 text-sm hover:bg-panel/80 transition">
+            Clear Search
+          </button>
         </div>
-        ${buttons.join("")}
-      </div>`;
-          })
-          .join("");
-      }
-
-      function attachTrackEvents(container = results) {
-        container.querySelectorAll(".play").forEach((btn) => {
-          btn.onclick = async () => {
-            const key = `${btn.dataset.platform}:${btn.dataset.id}`;
-            const track = trackCache[key];
-            if (track.platform !== "soundcloud") {
-              queue = addToQueue(queue, track);
-              currentIndex = queue.length - 1;
-              updateQueue();
-            }
-            await playTrack(track);
-          };
-        });
-        container.querySelectorAll(".queue").forEach((btn) => {
-          btn.onclick = () => {
-            const key = `${btn.dataset.platform}:${btn.dataset.id}`;
-            const track = trackCache[key];
-            queue = addToQueue(queue, track);
-            updateQueue();
-          };
-        });
-        container.querySelectorAll(".like").forEach((btn) => {
-          btn.onclick = () => {
-            const key = `${btn.dataset.platform}:${btn.dataset.id}`;
-            const track = trackCache[key];
-            toggleLike(track);
-            btn.textContent = isLiked(track) ? "♥" : "♡";
-          };
-        });
-      }
-
-      function renderPlaylistList(list) {
-        return list
-          .map((p) => {
-            const art =
-              (p.artwork && (p.artwork["150x150"] || p.artwork["480x480"])) ||
-              "";
-            return `
-      <a class="glass playlist-card" href="playlist.html?id=${p.id}">
-        <img src="${art}" width="72" height="72" loading="lazy" alt="artwork" />
-        <div>
-          <div style="font-weight:700">${p.playlist_name || ""}</div>
-          <div style="opacity:.7">${p.track_count || 0} tracks</div>
+        <div id="searchResultsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4"></div>
+        <div id="noResults" class="hidden p-8 text-center text-muted">
+          <i data-feather="search" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+          <p>No results found for your search</p>
         </div>
-      </a>`;
-          })
-          .join("");
-      }
-
-      async function loadHome(genre) {
-        results.innerHTML =
-          '<div class="glass" style="padding:16px;">Loading…</div>';
-        try {
-          const [tracksRaw, playlists, feature] = await Promise.all([
-            currentSort === 'trending'
-              ? trendingTracks(genre)
-              : genreTracks(genre, currentSort),
-            trendingPlaylists(),
-            latestRelease(),
-          ]);
-          const tracks =
-            currentSort === 'trending'
-              ? tracksRaw
-              : window.sortTracks(
-                  tracksRaw,
-                  currentSort === 'latest' ? 'latest' : 'plays',
-                );
-          const genreLabel = genre ? ` — ${genre}` : "";
-          const sortLabel =
-            currentSort === 'latest'
-              ? 'Latest Tracks'
-              : currentSort === 'popular'
-              ? 'Most Popular Tracks'
-              : 'Trending Tracks';
-          results.innerHTML = `
-      ${renderFeatured(feature)}
-      <h2>${sortLabel}${genreLabel}</h2>
-      <div class="carousel">${renderTracksList(tracks, true)}</div>
-      <h2>Trending Playlists</h2>
-      ${renderPlaylistList(playlists)}
-    `;
-          attachTrackEvents();
-        } catch (err) {
-          console.error(err);
-          results.innerHTML =
-            '<div class="glass" style="padding:16px;">Error loading trending data.</div>';
-        }
-      }
-
-      async function performSearch(q, append = false) {
-        if (!q) {
-          loadHome(currentGenre);
-          return;
-        }
-        if (!append) {
-          currentQuery = q;
-          currentOffset = 0;
-          results.innerHTML =
-            '<div class="glass" style="padding:16px;">Searching…</div>';
-        }
-        try {
-          let scError = false;
-          let spError = false;
-          const [a, s, p] = await Promise.all([
-            searchTracks(q, currentOffset),
-            searchSoundCloud(q, currentOffset).catch(() => {
-              scError = true;
-              return [];
-            }),
-            searchSpotify(q, currentOffset, PAGE_LIMIT).catch(() => {
-              spError = true;
-              return [];
-            }),
-          ]);
-          let audiusTracks = a.map(normalizeAudiusTrack);
-          let scTracks = s.map(normalizeSoundCloudTrack);
-          let spTracks = p.map(normalizeSpotifyTrack);
-          if (!searchAllArtists) {
-            audiusTracks = audiusTracks.filter(
-              (t) => t.user && t.user.handle === MRFLEN_AUDIUS_HANDLE,
-            );
-            scTracks = scTracks.filter(
-              (t) => t.user && t.user.handle === MRFLEN_SC_USERNAME,
-            );
-            spTracks = spTracks.filter(
-              (t) => t.user && t.user.id === MRFLEN_SPOTIFY_ID,
-            );
-          }
-          let tracks = [...audiusTracks, ...scTracks, ...spTracks];
-          if (currentGenre) tracks = window.filterByGenre(tracks, currentGenre);
-          const sortKey = currentSort === 'latest' ? 'latest' : 'plays';
-          tracks = window.sortTracks(tracks, sortKey);
-          const scopeMessage = searchAllArtists
-            ? 'Showing all artists'
-            : 'Showing Mr.FLEN only';
-          if (!tracks.length && !append) {
-            results.innerHTML =
-              `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
-              `<div class="glass" style="padding:16px;margin-top:8px;">No ${
-                searchAllArtists ? '' : 'Mr.FLEN '
-              }tracks found.</div>`;
-            if (scError && SOUND_CLOUD_ENABLED)
-              results.innerHTML +=
-                '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ SoundCloud results unavailable.</div>';
-            if (spError)
-              results.innerHTML +=
-                '<div class="glass" style="padding:16px;margin-top:8px;">⚠️ Spotify results unavailable.</div>';
-            return;
-          }
-          if (!append) {
-            let html =
-              `<div class="glass" style="padding:16px;">${scopeMessage}</div>` +
-              renderTracksList(tracks, true);
-            if (scError && SOUND_CLOUD_ENABLED)
-              html =
-                '<div class="glass" style="padding:16px;">⚠️ SoundCloud results unavailable.</div>' +
-                html;
-            if (spError)
-              html =
-                '<div class="glass" style="padding:16px;">⚠️ Spotify results unavailable.</div>' +
-                html;
-            results.innerHTML = html;
-          } else {
-            results.innerHTML += renderTracksList(tracks, true);
-          }
-          attachTrackEvents();
-          hasMore =
-            a.length === PAGE_LIMIT ||
-            s.length === PAGE_LIMIT ||
-            p.length === PAGE_LIMIT;
-          currentOffset += PAGE_LIMIT;
-        } catch (err) {
-          console.error(err);
-          if (!append)
-            results.innerHTML =
-              '<div class="glass" style="padding:16px;">Error contacting APIs.</div>';
-        }
-      }
-
-      window.addEventListener("scroll", async () => {
-        if (
-          currentQuery &&
-          hasMore &&
-          !loadingMore &&
-          window.innerHeight + window.scrollY >=
-            document.body.offsetHeight - 100
-        ) {
-          loadingMore = true;
-          await performSearch(currentQuery, true);
-          loadingMore = false;
-        }
-      });
-
-      let debounceTimer = null;
-      search.addEventListener("input", (e) => {
-        const q = e.target.value.trim();
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => performSearch(q), 250);
-      });
-
-      nextBtn.onclick = () => {
-        if (currentIndex + 1 < queue.length) {
-          currentIndex++;
-          playTrack(queue[currentIndex]);
-        }
-      };
-
-      prevBtn.onclick = () => {
-        const idx = previousIndex(currentIndex);
-        if (idx !== currentIndex && idx >= 0 && idx < queue.length) {
-          currentIndex = idx;
-          playTrack(queue[currentIndex]);
-        }
-      };
-
-      login.onclick = () => loginModal.classList.remove("hidden");
-      closeLogin.onclick = () => loginModal.classList.add("hidden");
-      window.onGoogleSignIn = (res) => {
-        handleAuthSuccess("google", res.credential);
-      };
-      window.fbAsyncInit = function () {
-        FB.init({
-          appId: "FACEBOOK_APP_ID",
-          cookie: true,
-          xfbml: true,
-          version: "v19.0",
-        });
-      };
-      fbLoginBtn.onclick = () => {
-        FB.login(
-          (response) => {
-            if (response.authResponse) {
-              handleAuthSuccess("facebook", response.authResponse.accessToken);
+      `;
+      
+      // Insert search results container at the beginning of main content
+      mainContent.insertBefore(searchResultsContainer, mainContent.firstChild);
+      
+      const performSearch = async () => {
+        const query = searchInput.value.trim();
+        if (query.length > 2) {
+          try {
+            // Show loading state
+            document.getElementById('searchResultsGrid').innerHTML = `
+              <div class="col-span-full flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
+              </div>
+            `;
+            
+            // Hide other sections and show search results
+            document.querySelectorAll('section, aside').forEach(el => el.classList.add('hidden'));
+            searchResultsContainer.classList.remove('hidden');
+            
+            const response = await fetch(`${AUDIUS_BASE_URL}/tracks/search?query=${encodeURIComponent(query)}&app_name=MrFLEN`, {
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              const resultsGrid = document.getElementById('searchResultsGrid');
+              const noResults = document.getElementById('noResults');
+              
+              if (data.data && data.data.length > 0) {
+                noResults.classList.add('hidden');
+                resultsGrid.innerHTML = '';
+                
+                data.data.slice(0, 8).forEach((track, index) => {
+                  const trackElement = createTrackCard(track, index);
+                  resultsGrid.appendChild(trackElement);
+                });
+                
+                // Update icons in the new elements
+                setTimeout(() => feather.replace(), 100);
+              } else {
+                resultsGrid.innerHTML = '';
+                noResults.classList.remove('hidden');
+              }
             }
-          },
-          { scope: "public_profile,email" }
-        );
-      };
-      const buildRedirectUri = () =>
-        window.location.origin +
-        window.location.pathname +
-        window.location.search;
-        instaLoginBtn.onclick = () => {
-          const clientId = env.INSTAGRAM_CLIENT_ID || "";
-          const redirectUri = buildRedirectUri();
-        const url = `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-          redirectUri
-        )}&scope=user_profile&response_type=token&state=instagram`;
-        window.location.href = url;
-      };
-        xLoginBtn.onclick = () => {
-          const clientId = env.X_CLIENT_ID || "";
-          const redirectUri = buildRedirectUri();
-        const url = `https://twitter.com/i/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(
-          redirectUri
-        )}&scope=tweet.read%20users.read&state=x`;
-        window.location.href = url;
-      };
-        snapLoginBtn.onclick = () => {
-          const clientId = env.SNAPCHAT_CLIENT_ID || "";
-          const redirectUri = buildRedirectUri();
-        const url = `https://accounts.snapchat.com/accounts/oauth2/auth?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(
-          redirectUri
-        )}&scope=snapchat_marketing_api&state=snapchat`;
-        window.location.href = url;
-      };
-        tiktokLoginBtn.onclick = () => {
-          const clientId = env.TIKTOK_CLIENT_ID || "";
-          const redirectUri = buildRedirectUri();
-        const url = `https://www.tiktok.com/auth/authorize?client_key=${clientId}&redirect_uri=${encodeURIComponent(
-          redirectUri
-        )}&response_type=token&scope=user.info.basic&state=tiktok`;
-        window.location.href = url;
-      };
-
-      const userTracksRaw = await fetchUserTracks(MRFLEN_AUDIUS_HANDLE);
-      const userTracks = userTracksRaw.map(normalizeAudiusTrack);
-      const remixes = userTracksRaw
-        .filter((t) => t.remix_of)
-        .map(normalizeAudiusTrack);
-      refengineeredList.innerHTML = renderTracksList(remixes, true);
-
-      function renderNewReleases() {
-        const tracks = window.sortTracks(userTracks.slice(), 'latest');
-        newReleasesList.innerHTML = renderTracksList(tracks, true);
-      }
-
-      function populateMonthSelect() {
-        const months = window.listMonths(userTracks);
-        monthSelect.innerHTML = '<option value="">Select month</option>';
-        months.forEach((m) => {
-          const opt = document.createElement('option');
-          opt.value = m;
-          opt.textContent = m;
-          monthSelect.appendChild(opt);
-        });
-      }
-
-      monthSelect.addEventListener('change', (e) => {
-        const m = e.target.value;
-        if (m) window.location.href = `releases.html?month=${m}`;
-      });
-
-      renderNewReleases();
-      populateMonthSelect();
-
-      performSearch(MRFLEN_AUDIUS_HANDLE);
-
-      // ⌘/Ctrl-K to focus
-      document.addEventListener("keydown", (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-          e.preventDefault();
-          search.focus();
-        } else if (e.code === "Space" && e.target === document.body && audioPlayer) {
-          e.preventDefault();
-          audioPlayer.paused ? audioPlayer.play() : audioPlayer.pause();
-        }
-      });
-      shuffleBtn.onclick = () => {
-        if (queue.length) {
-          currentIndex = Math.floor(Math.random() * queue.length);
-          playTrack(queue[currentIndex]);
-        }
-      };
-
-      // Google Drive backup and restore
-      function initDriveBackup() {
-        if (!window.DriveBackup || !window.GOOGLE_CLIENT_ID) return;
-        (function poll() {
-          if (window.google) {
-            DriveBackup.init(window.GOOGLE_CLIENT_ID);
-          } else {
-            setTimeout(poll, 100);
+          } catch (error) {
+            console.error('Search error:', error);
+            document.getElementById('searchResultsGrid').innerHTML = `
+              <div class="col-span-full text-center py-8 text-red-400">
+                <i data-feather="alert-circle" class="w-12 h-12 mx-auto mb-4"></i>
+                <p>Error loading search results</p>
+              </div>
+            `;
+            feather.replace();
           }
-        })();
-      }
-      initDriveBackup();
-      const backupBtn = document.getElementById("backup-btn");
-      const restoreBtn = document.getElementById("restore-btn");
-      function showBackup() {
-        backupBtn.style.display = "inline-block";
-      }
-      const originalSetItem = localStorage.setItem.bind(localStorage);
-      localStorage.setItem = (k, v) => {
-        originalSetItem(k, v);
-        showBackup();
-      };
-      backupBtn.onclick = async () => {
-        try {
-          await DriveBackup.upload({ localStorage: { ...localStorage } });
-          backupBtn.style.display = "none";
-          alert("Backup complete");
-        } catch (err) {
-          console.error(err);
-          alert("Backup failed");
         }
       };
-      restoreBtn.onclick = async () => {
-        try {
-          const data = await DriveBackup.download();
-          if (data && data.localStorage) {
-            for (const [k, v] of Object.entries(data.localStorage)) {
-              originalSetItem(k, v);
-            }
-            alert("Restore complete");
-          } else {
-            alert("No backup found");
-          }
-        } catch (err) {
-          console.error(err);
-          alert("Restore failed");
-        }
-      };
-    </script>
-  </body>
+      
+      // Clear search and show original content
+      document.getElementById('clearSearch').addEventListener('click', () => {
+        searchInput.value = '';
+        searchResultsContainer.classList.add('hidden');
+        document.querySelectorAll('section, aside').forEach(el => el.classList.remove('hidden'));
+      });
+      
+      searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch();
+      });
+      
+      searchButton.addEventListener('click', performSearch);
+      
+      // Also search when input changes after a delay
+      let searchTimeout;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 800);
+
+      });
+    }
+    
+    // Simulate progress bar animation
+    const progressBar = document.querySelectorAll('.progress-bar');
+    let progress = 0;
+    
+    setInterval(() => {
+      progress = (progress + 0.1) % 100;
+      progressBar.forEach(bar => {
+        bar.style.width = `${progress}%`;
+      });
+    }, 300);
+  </script>
+  <audio id="audio"></audio>
+</body>
 </html>
