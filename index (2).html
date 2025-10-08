@@ -103,7 +103,7 @@
   </script>
   
   <!-- Google Sign-In API -->
-  <meta name="google-signin-client_id" content="YOUR_ACTUAL_GOOGLE_CLIENT_ID_HERE">
+  <meta name="google-signin-client_id" content="YOUR_GOOGLE_CLIENT_ID">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -558,19 +558,36 @@
   <!-- Config -->
   <script id="config" type="application/json">
     {
-      "audiusKey": "922e6edcae9856000bf6814a1ee5745bfb57734",
-      "scClientId": "YOUR_ACTUAL_SOUNDCLOUD_CLIENT_ID_HERE",
-      "scRedirectUri": "https://your-actual-domain.com/soundcloud-callback",
-      "googleClientId": "YOUR_ACTUAL_GOOGLE_CLIENT_ID_HERE",
-      "googleRedirectUri": "https://your-actual-domain.com/google-callback",
+      "audiusAppName": "YOUR_AUDIUS_APP_NAME",
+      "audiusKey": "YOUR_AUDIUS_API_KEY",
+      "scClientId": "YOUR_SOUNDCLOUD_CLIENT_ID",
+      "scRedirectUri": "https://your-domain.example/soundcloud-callback",
+      "googleClientId": "YOUR_GOOGLE_CLIENT_ID",
+      "googleRedirectUri": "https://your-domain.example/google-callback",
       "mrflens": { "audiusHandle": "mrflen", "soundcloudUsername": "Mr.FLEN" }
     }
   </script>
   
   <!-- Audius API Integration -->
   <script>
-    const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734";
+    const CONFIG = JSON.parse(document.getElementById('config').textContent);
+    const AUDIUS_API_KEY = (CONFIG?.audiusKey || "YOUR_AUDIUS_API_KEY").trim();
+    const AUDIUS_APP_NAME = (CONFIG?.audiusAppName || "YOUR_AUDIUS_APP_NAME").trim();
     const AUDIUS_BASE_URL = "https://discoveryprovider.audius.co/v1";
+    const AUDIUS_APP = AUDIUS_APP_NAME || "MrFLEN";
+
+    function buildAudiusQuery(params = {}) {
+      const search = new URLSearchParams({ app_name: AUDIUS_APP, ...params });
+      if (AUDIUS_API_KEY) {
+        search.set("api_key", AUDIUS_API_KEY);
+      }
+      return search.toString();
+    }
+
+    function buildAudiusUrl(path, params = {}) {
+      const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+      return `${AUDIUS_BASE_URL}${normalizedPath}?${buildAudiusQuery(params)}`;
+    }
     
     // Initialize animations and icons
     document.addEventListener('DOMContentLoaded', async () => {
@@ -676,7 +693,7 @@
     // Fetch trending tracks from Audius
     async function fetchTrendingTracks() {
       try {
-        const response = await fetch(`${AUDIUS_BASE_URL}/tracks/trending?app_name=MrFLEN`, {
+        const response = await fetch(buildAudiusUrl("/tracks/trending"), {
           headers: {
             'Accept': 'application/json'
           }
@@ -704,7 +721,7 @@
     async function fetchMrFlenTracks() {
       try {
         // First, get Mr.FLEN user ID
-        const userResponse = await fetch(`${AUDIUS_BASE_URL}/users/search?query=mrflen&app_name=MrFLEN`, {
+        const userResponse = await fetch(buildAudiusUrl("/users/search", { query: "mrflen" }), {
           headers: {
             'Accept': 'application/json'
           }
@@ -717,7 +734,7 @@
           const mrFlenUser = userData.data[0];
           
           // Get tracks by Mr.FLEN
-          const tracksResponse = await fetch(`${AUDIUS_BASE_URL}/users/${mrFlenUser.id}/tracks?app_name=MrFLEN`, {
+          const tracksResponse = await fetch(buildAudiusUrl(`/users/${mrFlenUser.id}/tracks`), {
             headers: {
               'Accept': 'application/json'
             }
@@ -856,7 +873,7 @@
       feather.replace();
       
       // Fetch and play stream
-      fetch(`${AUDIUS_BASE_URL}/tracks/${trackId}/stream?app_name=MrFLEN`)
+      fetch(buildAudiusUrl(`/tracks/${trackId}/stream`))
         .then(response => {
           if (response.ok) {
             const audio = document.getElementById('audio');
@@ -1039,7 +1056,7 @@
             document.querySelectorAll('section, aside').forEach(el => el.classList.add('hidden'));
             searchResultsContainer.classList.remove('hidden');
             
-            const response = await fetch(`${AUDIUS_BASE_URL}/tracks/search?query=${encodeURIComponent(query)}&app_name=MrFLEN`, {
+            const response = await fetch(buildAudiusUrl("/tracks/search", { query }), {
               headers: {
                 'Accept': 'application/json'
               }

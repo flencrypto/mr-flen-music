@@ -145,8 +145,8 @@
       document.getElementById("theme-toggle").addEventListener("click", () => {
         toggleTheme();
       });
-      const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
-      const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734";
+      const AUDIUS_APP_NAME = "YOUR_AUDIUS_APP_NAME";
+      const AUDIUS_API_KEY = "YOUR_AUDIUS_API_KEY";
       async function pickHost() {
         const res = await fetch("https://api.audius.co");
         const { data } = await res.json();
@@ -154,11 +154,15 @@
       }
       async function streamUrl(trackId) {
         const host = await pickHost();
-        return `${host}/v1/tracks/${trackId}/stream?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+        const params = new URLSearchParams({ app_name: AUDIUS_APP_NAME || "MrFLEN" });
+        if (AUDIUS_API_KEY) params.set("api_key", AUDIUS_API_KEY);
+        return `${host}/v1/tracks/${trackId}/stream?${params.toString()}`;
       }
       async function fetchPlaylist(id) {
         const host = await pickHost();
-        const url = `${host}/v1/playlists/${id}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+        const params = new URLSearchParams({ app_name: AUDIUS_APP_NAME || "MrFLEN" });
+        if (AUDIUS_API_KEY) params.set("api_key", AUDIUS_API_KEY);
+        const url = `${host}/v1/playlists/${id}?${params.toString()}`;
         const res = await fetch(url, {
           headers: { Accept: "application/json" },
         });

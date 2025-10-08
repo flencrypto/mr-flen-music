@@ -22,8 +22,8 @@
     <script src="public/sort-tracks.js"></script>
     <script src="public/filter-tracks.js"></script>
     <script type="module">
-      const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
-      const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734";
+      const AUDIUS_APP_NAME = "YOUR_AUDIUS_APP_NAME";
+      const AUDIUS_API_KEY = "YOUR_AUDIUS_API_KEY";
       const MRFLEN_AUDIUS_HANDLE = "Mr.FLEN";
 
       async function pickHost() {
@@ -34,7 +34,9 @@
 
       async function fetchUserId(handle) {
         const host = await pickHost();
-        const url = `${host}/v1/users/handle/${encodeURIComponent(handle)}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+        const params = new URLSearchParams({ app_name: AUDIUS_APP_NAME || "MrFLEN" });
+        if (AUDIUS_API_KEY) params.set("api_key", AUDIUS_API_KEY);
+        const url = `${host}/v1/users/handle/${encodeURIComponent(handle)}?${params.toString()}`;
         const res = await fetch(url, { headers: { Accept: "application/json" } });
         const json = await res.json();
         return json.data && json.data.id;
@@ -44,7 +46,12 @@
         const userId = await fetchUserId(handle);
         if (!userId) return [];
         const host = await pickHost();
-        const url = `${host}/v1/users/${userId}/tracks?limit=200&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+        const params = new URLSearchParams({
+          app_name: AUDIUS_APP_NAME || "MrFLEN",
+          limit: "200",
+        });
+        if (AUDIUS_API_KEY) params.set("api_key", AUDIUS_API_KEY);
+        const url = `${host}/v1/users/${userId}/tracks?${params.toString()}`;
         const res = await fetch(url, { headers: { Accept: "application/json" } });
         const json = await res.json();
         return json.data || [];
