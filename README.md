@@ -15,23 +15,8 @@ A sleek, HTML-only music browser that unifies **Audius**, **SoundCloud**, and **
 
 ## Getting started
 
-1. Copy `.env.example` to `.env` and fill in credentials for SoundCloud, Spotify, Instagram, X, Snapchat, and TikTok.
+1. Copy `.env.example` to `.env` and fill in credentials for Audius, SoundCloud, Spotify, Instagram, X, Snapchat, and TikTok.
 2. Serve the `public/` directory with any static host or open `public/index.html` directly in a browser.
-
-### OAuth configuration
-
-Each provider requires a client ID exposed via environment variables:
-
-| Provider | Variable | Notes |
-| --- | --- | --- |
-| SoundCloud | `SOUNDCLOUD_CLIENT_ID` | Get a public client ID from [developers.soundcloud.com](https://developers.soundcloud.com/). Without it, SoundCloud results are unavailable. |
-| Spotify | `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | Create an app at [developer.spotify.com](https://developer.spotify.com/dashboard/) and enable the Web API. |
-| Instagram | `INSTAGRAM_CLIENT_ID` | Create an app at [developers.facebook.com](https://developers.facebook.com/apps/) and enable Instagram Basic Display. |
-| X | `X_CLIENT_ID` | Register at [developer.twitter.com](https://developer.twitter.com/) and create an OAuth 2.0 Client. |
-| Snapchat | `SNAPCHAT_CLIENT_ID` | Use the [Snap Kit portal](https://kit.snapchat.com/portal) to obtain credentials. |
-| TikTok | `TIKTOK_CLIENT_ID` | Create an app in the [TikTok developer portal](https://developers.tiktok.com/). |
-
-Populate these values in `.env` before running locally.
 
 ## Mobile installation
 
