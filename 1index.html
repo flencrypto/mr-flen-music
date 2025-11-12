@@ -28,10 +28,24 @@
  * edit the CSS in style.css.
  */
 
-const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
-const AUDIUS_API_KEY  = "922e6edcae9856000bf6814a1ee5745bfb57734"; // public, read-only (ok in client)
+const DEFAULT_AUDIUS_APP_NAME = "YOUR_AUDIUS_APP_NAME";
+const DEFAULT_AUDIUS_API_KEY  = "YOUR_AUDIUS_API_KEY";
 // BACKEND-ONLY (do NOT ship secrets to the browser):
 // const AUDIUS_API_SECRET = "YOUR_AUDIUS_API_SECRET";
+
+const configElement = document.getElementById('config');
+const CONFIG = configElement ? JSON.parse(configElement.textContent) : {};
+const AUDIUS_APP_NAME = (CONFIG?.audiusAppName || DEFAULT_AUDIUS_APP_NAME).trim();
+const AUDIUS_API_KEY = (CONFIG?.audiusKey || DEFAULT_AUDIUS_API_KEY).trim();
+const AUDIUS_APP = AUDIUS_APP_NAME || 'MrFLEN';
+
+function buildAudiusParams(extra = {}) {
+  const params = new URLSearchParams({ app_name: AUDIUS_APP, ...extra });
+  if (AUDIUS_API_KEY) {
+    params.set('api_key', AUDIUS_API_KEY);
+  }
+  return params.toString();
+}
 
 async function pickHost(){
   const res = await fetch('https://api.audius.co');
@@ -41,7 +55,7 @@ async function pickHost(){
 
 async function searchTracks(query){
   const host = await pickHost();
-  const url  = `${host}/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+  const url  = `${host}/v1/tracks/search?${buildAudiusParams({ query })}`;
   const res  = await fetch(url, { headers: { Accept:'application/json' } });
   const json = await res.json();
   return json.data || [];
@@ -49,7 +63,7 @@ async function searchTracks(query){
 
 async function streamUrl(trackId){
   const host = await pickHost();
-  return `${host}/v1/tracks/${trackId}/stream?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+  return `${host}/v1/tracks/${trackId}/stream?${buildAudiusParams()}`;
 }
 
 // UI wiring
@@ -187,7 +201,7 @@ document.addEventListener('keydown', (e)=>{
   </script>
   
   <!-- Google Sign-In API -->
-  <meta name="google-signin-client_id" content="YOUR_ACTUAL_GOOGLE_CLIENT_ID_HERE">
+  <meta name="google-signin-client_id" content="YOUR_GOOGLE_CLIENT_ID">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -642,11 +656,12 @@ document.addEventListener('keydown', (e)=>{
   <!-- Config -->
   <script id="config" type="application/json">
     {
-      "audiusKey": "922e6edcae9856000bf6814a1ee5745bfb57734",
-      "scClientId": "YOUR_ACTUAL_SOUNDCLOUD_CLIENT_ID_HERE",
-      "scRedirectUri": "https://your-actual-domain.com/soundcloud-callback",
-      "googleClientId": "YOUR_ACTUAL_GOOGLE_CLIENT_ID_HERE",
-      "googleRedirectUri": "https://your-actual-domain.com/google-callback",
+      "audiusAppName": "YOUR_AUDIUS_APP_NAME",
+      "audiusKey": "YOUR_AUDIUS_API_KEY",
+      "scClientId": "YOUR_SOUNDCLOUD_CLIENT_ID",
+      "scRedirectUri": "https://your-domain.example/soundcloud-callback",
+      "googleClientId": "YOUR_GOOGLE_CLIENT_ID",
+      "googleRedirectUri": "https://your-domain.example/google-callback",
       "mrflens": { "audiusHandle": "mrflen", "soundcloudUsername": "Mr.FLEN" }
     }
   </script>
