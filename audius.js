@@ -1,6 +1,19 @@
 /** @type {{ z: typeof import("zod").z }} */
 let zodExports;
 
+/**
+ * @param {unknown} candidate
+ * @returns {candidate is typeof import("zod").z}
+ */
+function isZodNamespace(candidate) {
+  if (typeof candidate !== "object" || candidate === null) {
+    return false;
+  }
+  const objectFn = Reflect.get(candidate, "object");
+  const stringFn = Reflect.get(candidate, "string");
+  return typeof objectFn === "function" && typeof stringFn === "function";
+}
+
 const nodeRequire = typeof module === "object" && module && module.exports && typeof require === "function"
   ? require
   : null;
@@ -9,15 +22,28 @@ if (nodeRequire) {
   zodExports = nodeRequire("zod");
 } else {
   const globalScope = typeof globalThis !== "undefined" ? globalThis : window;
-  if (globalScope && globalScope.z && typeof globalScope.z === "object") {
-    zodExports = { z: globalScope.z };
-  } else if (globalScope && globalScope.zod && typeof globalScope.zod === "object") {
-    zodExports = { z: globalScope.zod };
-  } else if (globalScope && globalScope.Zod && globalScope.Zod.z && typeof globalScope.Zod.z === "object") {
-    zodExports = { z: globalScope.Zod.z };
-  } else {
+  const directZ = /** @type {unknown} */ (Reflect.get(globalScope, "z"));
+  const lowercaseZod = /** @type {unknown} */ (Reflect.get(globalScope, "zod"));
+  const uppercaseZod = /** @type {unknown} */ (Reflect.get(globalScope, "Zod"));
+  /** @type {typeof import("zod").z | null} */
+  let resolvedZ = null;
+
+  if (isZodNamespace(directZ)) {
+    resolvedZ = directZ;
+  } else if (isZodNamespace(lowercaseZod)) {
+    resolvedZ = lowercaseZod;
+  } else if (typeof uppercaseZod === "object" && uppercaseZod !== null) {
+    const nestedZ = /** @type {unknown} */ (Reflect.get(uppercaseZod, "z"));
+    if (isZodNamespace(nestedZ)) {
+      resolvedZ = nestedZ;
+    }
+  }
+
+  if (!resolvedZ) {
     throw new Error("Zod library is required to use the Audius helper");
   }
+
+  zodExports = { z: resolvedZ };
 }
 
 const { z } = zodExports;
