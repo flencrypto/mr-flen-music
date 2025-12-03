@@ -1,5 +1,11 @@
 const CACHE = 'flen-shell-v1';
-const ASSETS = ['/', '/index.html', '/app.js', '/manifest.webmanifest'];
+const ASSETS = [
+  '/',
+  '/index.html',
+  '/app.js',
+  '/config-loader.js',
+  '/manifest.webmanifest',
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
