@@ -616,6 +616,7 @@
     </div>
   </div>
 
+  <script src="config-loader.js"></script>
   <!-- Config -->
   <script id="config" type="application/json">
     {
@@ -628,10 +629,12 @@
       "mrflens": { "audiusHandle": "mr.flen", "soundcloudUsername": "Mr.FLEN" }
     }
   </script>
-  
+
   <!-- Audius API Integration -->
   <script>
-    const CONFIG = JSON.parse(document.getElementById('config').textContent);
+    const CONFIG = (window.configLoader && window.configLoader.loadFromDom)
+      ? window.configLoader.loadFromDom(document)
+      : {};
     const AUDIUS_API_KEY = (CONFIG?.audiusKey || "YOUR_AUDIUS_API_KEY").trim();
     const AUDIUS_APP_NAME = (CONFIG?.audiusAppName || "YOUR_AUDIUS_APP_NAME").trim();
     const AUDIUS_BASE_URL = "https://discoveryprovider.audius.co/v1";
