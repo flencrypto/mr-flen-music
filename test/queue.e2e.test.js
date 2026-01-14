@@ -5,6 +5,7 @@
 describe('queue user flow', () => {
   let queueUtils;
   let localStorageMock;
+  let formatTime;
   
   beforeEach(() => {
     // Setup DOM
@@ -33,6 +34,11 @@ describe('queue user flow', () => {
     // Load queue utils
     queueUtils = require('../public/queue-utils');
     global.queueUtils = queueUtils;
+    
+    // Load actual formatTime implementation
+    const formatTimeModule = require('../format-time');
+    formatTime = formatTimeModule.formatTime;
+    global.formatTime = formatTime;
   });
   
   afterEach(() => {
@@ -48,13 +54,6 @@ describe('queue user flow', () => {
         { id: '3', platform: 'audius', title: 'Track 3', artist: 'Artist 3', artwork: 'art3.jpg', durationMs: 220000 }
       ],
       idx: 0
-    };
-    
-    // Mock formatTime
-    global.formatTime = (seconds) => {
-      const minutes = Math.floor(seconds / 60);
-      const remainder = Math.floor(seconds % 60);
-      return `${minutes}:${String(remainder).padStart(2, '0')}`;
     };
     
     // Mock normalizeTrack
@@ -87,7 +86,7 @@ describe('queue user flow', () => {
       
       mockState.queue.forEach((track, index) => {
         const t = global.normalizeTrack(track);
-        const duration = t.durationMs ? global.formatTime(t.durationMs / 1000) : '--:--';
+        const duration = t.durationMs ? formatTime(t.durationMs / 1000) : '--:--';
         const isCurrent = index === mockState.idx;
         const li = document.createElement('li');
         li.className = `queue-item ${isCurrent ? 'current' : ''}`;

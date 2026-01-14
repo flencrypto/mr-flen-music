@@ -123,6 +123,7 @@ function renderQueue() {
       }
     });
     
+    // TODO: Add keyboard navigation (arrow keys) for better accessibility
     // Drag and drop handlers
     li.addEventListener('dragstart', (e) => {
       e.dataTransfer.effectAllowed = 'move';
@@ -153,7 +154,10 @@ function renderQueue() {
 }
 
 function removeFromQueueAtIndex(index) {
-  if (!window.queueUtils) return;
+  if (!window.queueUtils) {
+    console.warn('queueUtils not loaded');
+    return;
+  }
   const newQueue = window.queueUtils.removeFromQueue(state.queue, index);
   const newIdx = window.queueUtils.adjustIndexOnRemove(state.idx, index, newQueue.length);
   state.queue = newQueue;
@@ -162,7 +166,10 @@ function removeFromQueueAtIndex(index) {
 }
 
 function moveQueueItem(fromIndex, toIndex) {
-  if (!window.queueUtils) return;
+  if (!window.queueUtils) {
+    console.warn('queueUtils not loaded');
+    return;
+  }
   const newQueue = window.queueUtils.moveInQueue(state.queue, fromIndex, toIndex);
   state.queue = newQueue;
   // Adjust current index if needed
@@ -192,6 +199,7 @@ function saveCurrentQueueAsPlaylist() {
     alert('Queue is empty');
     return;
   }
+  // TODO: Replace alert/prompt with proper modal dialogs for better UX and accessibility
   const name = prompt('Enter playlist name:');
   if (!name || !name.trim()) return;
   
