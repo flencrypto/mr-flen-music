@@ -185,8 +185,8 @@
       document.getElementById("theme-toggle").addEventListener("click", () => {
         toggleTheme();
       });
-      const AUDIUS_APP_NAME = "Mr.FLENs Music Finder";
-      const AUDIUS_API_KEY = "922e6edcae9856000bf6814a1ee5745bfb57734";
+      const AUDIUS_APP_NAME = "YOUR_AUDIUS_APP_NAME";
+      const AUDIUS_API_KEY = "YOUR_AUDIUS_API_KEY";
       const SOUNDCLOUD_CLIENT_ID = "YOUR_SOUNDCLOUD_API_KEY";
       async function pickHost() {
         const res = await fetch("https://api.audius.co");
@@ -199,7 +199,9 @@
       }
       async function fetchAudiusTrack(id) {
         const host = await pickHost();
-        const url = `${host}/v1/tracks/${id}?app_name=${encodeURIComponent(AUDIUS_APP_NAME)}&api_key=${encodeURIComponent(AUDIUS_API_KEY)}`;
+        const params = new URLSearchParams({ app_name: AUDIUS_APP_NAME || "MrFLEN" });
+        if (AUDIUS_API_KEY) params.set("api_key", AUDIUS_API_KEY);
+        const url = `${host}/v1/tracks/${id}?${params.toString()}`;
         const res = await fetch(url, {
           headers: { Accept: "application/json" },
         });

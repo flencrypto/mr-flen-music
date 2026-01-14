@@ -32,7 +32,7 @@
     return arr;
   }
 
-  function adjustIndexOnRemove(currentIndex, removedIndex) {
+  function adjustIndexOnRemove(currentIndex, removedIndex, nextLength) {
     if (typeof currentIndex !== 'number' || currentIndex < 0) {
       return currentIndex;
     }
@@ -40,6 +40,14 @@
       return currentIndex;
     }
     if (removedIndex > currentIndex) {
+      return currentIndex;
+    }
+    if (
+      removedIndex === currentIndex &&
+      typeof nextLength === 'number' &&
+      Number.isFinite(nextLength) &&
+      nextLength > currentIndex
+    ) {
       return currentIndex;
     }
     const nextIndex = currentIndex - 1;

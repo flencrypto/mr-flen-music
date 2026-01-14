@@ -27,11 +27,15 @@ describe('queue-utils', () => {
 
   test('adjustIndexOnRemove decrements when removed before or at current', () => {
     expect(adjustIndexOnRemove(2, 1)).toBe(1);
-    expect(adjustIndexOnRemove(0, 0)).toBe(-1);
+    expect(adjustIndexOnRemove(0, 0, 0)).toBe(-1);
   });
 
   test('adjustIndexOnRemove unchanged when removed after current', () => {
     expect(adjustIndexOnRemove(1, 2)).toBe(1);
+  });
+
+  test('adjustIndexOnRemove keeps index when current track shifts forward', () => {
+    expect(adjustIndexOnRemove(1, 1, 2)).toBe(1);
   });
 
   test('adjustIndexOnRemove ignores invalid removal indices', () => {
