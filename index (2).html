@@ -560,11 +560,11 @@
     {
       "audiusBaseUrl": "https://discoveryprovider.audius.co/v1",
       "audiusAppName": "YOUR_AUDIUS_APP_NAME",
-      "audiusKey": "922e6edcae9856000bf6814a1ee5745bfb57734",
-      "scClientId": "YOUR_ACTUAL_SOUNDCLOUD_CLIENT_ID_HERE",
-      "scRedirectUri": "https://your-actual-domain.com/soundcloud-callback",
-      "googleClientId": "YOUR_ACTUAL_GOOGLE_CLIENT_ID_HERE",
-      "googleRedirectUri": "https://your-actual-domain.com/google-callback",
+      "audiusKey": "YOUR_AUDIUS_API_KEY",
+      "scClientId": "YOUR_SOUNDCLOUD_CLIENT_ID",
+      "scRedirectUri": "https://your-domain.example/soundcloud-callback",
+      "googleClientId": "YOUR_GOOGLE_CLIENT_ID",
+      "googleRedirectUri": "https://your-domain.example/google-callback",
       "mrflens": { "audiusHandle": "mrflen", "soundcloudUsername": "Mr.FLEN" }
     }
   </script>
@@ -588,7 +588,7 @@
     }
 
     const siteConfig = parseSiteConfig();
-    const AUDIUS_API_KEY = siteConfig.audiusKey || "922e6edcae9856000bf6814a1ee5745bfb57734";
+    const AUDIUS_API_KEY = siteConfig.audiusKey || "YOUR_AUDIUS_API_KEY";
     const AUDIUS_APP_NAME = (siteConfig.audiusAppName || "YOUR_AUDIUS_APP_NAME").trim();
     const AUDIUS_BASE_URL = (siteConfig.audiusBaseUrl || DEFAULT_AUDIUS_BASE_URL).replace(/\/$/, "");
     const AUDIUS_APP = AUDIUS_APP_NAME || "MrFLEN";
