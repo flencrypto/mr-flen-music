@@ -1,0 +1,57 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Node modules and dependencies
+node_modules
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Mobile app (not needed for web deployment)
+mobile
+
+# Development files
+.env
+.env.*
+!.env.example
+
+# Documentation
+README.md
+README (2).md
+docs
+
+# Tests
+__tests__
+test
+jest.config.js
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Build artifacts
+dist
+build
+.cache
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Linting and formatting
+.eslintrc.cjs
+.prettierrc
+.editorconfig
+
+# TypeScript
+tsconfig.json
+
+# Duplicate files (based on naming pattern)
+1index.html
+index (2).html
+style (3).css
