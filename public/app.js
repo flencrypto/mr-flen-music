@@ -27,7 +27,12 @@ const els = {
     likes: document.querySelector('#likesCount'),
     reposts: document.querySelector('#repostsCount'),
     followers: document.querySelector('#followersCount')
-  }
+  },
+  queueBtn: document.querySelector('#queueBtn'),
+  queueModal: document.querySelector('#queueModal'),
+  closeQueue: document.querySelector('#closeQueue'),
+  queueList: document.querySelector('#queueList'),
+  saveQueueBtn: document.querySelector('#saveQueueBtn')
 };
 
 const LIKED_KEY = 'likedTracks';
@@ -77,6 +82,126 @@ function savePlaylist(pl) {
   if (idx > -1) state.customPlaylists[idx] = pl;
   else state.customPlaylists.push(pl);
   savePreferences();
+}
+
+function renderQueue() {
+  if (!els.queueList) return;
+  els.queueList.innerHTML = '';
+  if (state.queue.length === 0) {
+    els.queueList.innerHTML = '<li class="text-center text-muted py-4">Queue is empty</li>';
+    return;
+  }
+  state.queue.forEach((track, index) => {
+    const t = normalizeTrack(track);
+    const duration = t.durationMs ? formatTime(t.durationMs / 1000) : '--:--';
+    const isCurrent = index === state.idx;
+    const li = document.createElement('li');
+    li.className = `queue-item ${isCurrent ? 'current' : ''}`;
+    li.draggable = true;
+    li.dataset.index = index;
+    li.innerHTML = `
+      <div class="flex items-center gap-3 flex-1">
+        <div class="drag-handle cursor-move">⋮⋮</div>
+        <img src="${t.artwork}" alt="${t.title}" width="40" height="40" style="border-radius:6px">
+        <div class="flex-1">
+          <div class="font-medium text-sm ${isCurrent ? 'text-brand' : ''}">${t.title}</div>
+          <div class="text-xs text-muted">${t.artist} • ${duration}</div>
+        </div>
+      </div>
+      <button class="btn-remove text-red-500 hover:text-red-400">×</button>
+    `;
+    
+    const removeBtn = li.querySelector('.btn-remove');
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      removeFromQueueAtIndex(index);
+    });
+    
+    li.addEventListener('click', () => {
+      if (index !== state.idx) {
+        playFrom(state.queue, index);
+      }
+    });
+    
+    // Drag and drop handlers
+    li.addEventListener('dragstart', (e) => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', index.toString());
+      li.classList.add('dragging');
+    });
+    
+    li.addEventListener('dragend', () => {
+      li.classList.remove('dragging');
+    });
+    
+    li.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    
+    li.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+      const toIndex = index;
+      if (fromIndex !== toIndex) {
+        moveQueueItem(fromIndex, toIndex);
+      }
+    });
+    
+    els.queueList.appendChild(li);
+  });
+}
+
+function removeFromQueueAtIndex(index) {
+  if (!window.queueUtils) return;
+  const newQueue = window.queueUtils.removeFromQueue(state.queue, index);
+  const newIdx = window.queueUtils.adjustIndexOnRemove(state.idx, index, newQueue.length);
+  state.queue = newQueue;
+  state.idx = newIdx;
+  renderQueue();
+}
+
+function moveQueueItem(fromIndex, toIndex) {
+  if (!window.queueUtils) return;
+  const newQueue = window.queueUtils.moveInQueue(state.queue, fromIndex, toIndex);
+  state.queue = newQueue;
+  // Adjust current index if needed
+  if (state.idx === fromIndex) {
+    state.idx = toIndex;
+  } else if (fromIndex < state.idx && toIndex >= state.idx) {
+    state.idx -= 1;
+  } else if (fromIndex > state.idx && toIndex <= state.idx) {
+    state.idx += 1;
+  }
+  renderQueue();
+}
+
+function showQueue() {
+  if (!els.queueModal) return;
+  renderQueue();
+  els.queueModal.classList.remove('hidden');
+}
+
+function hideQueue() {
+  if (!els.queueModal) return;
+  els.queueModal.classList.add('hidden');
+}
+
+function saveCurrentQueueAsPlaylist() {
+  if (state.queue.length === 0) {
+    alert('Queue is empty');
+    return;
+  }
+  const name = prompt('Enter playlist name:');
+  if (!name || !name.trim()) return;
+  
+  const playlist = {
+    name: name.trim(),
+    tracks: state.queue.map(t => normalizeTrack(t)),
+    createdAt: new Date().toISOString()
+  };
+  savePlaylist(playlist);
+  alert(`Playlist "${playlist.name}" saved successfully!`);
 }
 
 const state = {
@@ -451,6 +576,14 @@ restoreBtn.onclick = async () => {
     console.error('Restore failed', err);
   }
 };
+
+// Queue management event listeners
+els.queueBtn?.addEventListener('click', showQueue);
+els.closeQueue?.addEventListener('click', hideQueue);
+els.queueModal?.addEventListener('click', (e) => {
+  if (e.target === els.queueModal) hideQueue();
+});
+els.saveQueueBtn?.addEventListener('click', saveCurrentQueueAsPlaylist);
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js');

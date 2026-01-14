@@ -95,6 +95,55 @@
       transition: width 0.3s ease;
       background: var(--brand);
     }
+    
+    .queue-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .queue-item:hover {
+      background: rgba(255,255,255,0.08);
+    }
+    
+    .queue-item.current {
+      background: rgba(92,200,250,0.15);
+      border: 1px solid rgba(92,200,250,0.3);
+    }
+    
+    .queue-item.dragging {
+      opacity: 0.5;
+    }
+    
+    .drag-handle {
+      padding: 0.25rem;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+    
+    .btn-remove {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      line-height: 1;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .btn-remove:hover {
+      background: rgba(239,68,68,0.2);
+    }
   </style>
   
   <script>
@@ -502,6 +551,13 @@
         <i data-feather="shuffle" class="w-4 h-4"></i>
       </button>
       <button 
+        id="queueBtn"
+        class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition"
+        title="View Queue"
+      >
+        <i data-feather="list" class="w-4 h-4"></i>
+      </button>
+      <button 
         id="expandPlayer"
         class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition"
       >
@@ -613,6 +669,26 @@
         <span class="text-sm">Light Theme</span>
         <input id="themeToggle" type="checkbox" class="w-4 h-4">
       </label>
+    </div>
+  </div>
+
+  <!-- Queue Modal -->
+  <div id="queueModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50">
+    <div class="glass-panel p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-medium">Up Next</h2>
+        <div class="flex gap-2">
+          <button id="saveQueueBtn" class="glass-panel px-3 py-1 text-sm rounded hover:bg-brand/20 transition">
+            Save as Playlist
+          </button>
+          <button id="closeQueue" class="p-1 rounded hover:bg-white/10">
+            <i data-feather="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      <ul id="queueList" class="flex-1 overflow-y-auto space-y-2">
+        <!-- Queue items will be rendered here -->
+      </ul>
     </div>
   </div>
 
