@@ -52,7 +52,10 @@ async function exchangeCodeForToken(provider, code, fetchImpl = fetch) {
   return token;
 }
 
-function initGoogleAuth(clientId, callback) {
+function initGoogleAuth(
+  clientId = window.GOOGLE_CLIENT_ID,
+  callback = (res) => handleAuthSuccess("google", res.credential),
+) {
   if (!clientId || typeof callback !== "function") return false;
   if (!window.google || !window.google.accounts?.id) return false;
   window.google.accounts.id.initialize({ client_id: clientId, callback });
