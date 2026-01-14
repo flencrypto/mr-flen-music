@@ -13,9 +13,8 @@ docker build -t mr-flen-music:latest .
 ```
 
 This will create a lightweight (~62MB) Docker image containing:
-- nginx Alpine Linux base image
-- All static web files from the `public/` directory
-- Root-level HTML, JavaScript, and CSS files
+- nginx Alpine Linux base image  
+- All static web files from the `public/` directory (HTML, JavaScript, CSS, manifest, etc.)
 
 ## Running the Container
 
