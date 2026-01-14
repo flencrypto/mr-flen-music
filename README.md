@@ -15,7 +15,7 @@ A sleek, HTML-only music browser that unifies **Audius**, **SoundCloud**, and **
 
 ## Getting started
 
-1. Copy `.env.example` to `.env` and fill in credentials for SoundCloud, Spotify, Instagram, X, Snapchat, and TikTok.
+1. Copy `.env.example` to `.env` and fill in credentials for Audius, SoundCloud, Spotify, Instagram, X, Snapchat, and TikTok.
 2. Serve the `public/` directory with any static host or open `public/index.html` directly in a browser.
 
 ### Audius API health check
