@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Mr.FLEN's Music Finder</title>
   <meta name="theme-color" content="#0b1017">
-  <link rel="manifest" href="public/manifest.webmanifest">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style%20(3).css">
   
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -13,12 +14,11 @@
   <!-- Feather Icons -->
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-
+  
   <!-- Animation -->
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/animejs/lib/anime.iife.min.js"></script>
-  <script src="public/theme.js"></script>
   
   <style>
     :root {
@@ -30,23 +30,6 @@
       background-color: var(--bg-0);
       color: var(--text);
       font-family: 'Inter', system-ui, sans-serif;
-    }
-
-    body.light {
-      --bg-0: #f5f7fa;
-      --panel: rgba(255,255,255,0.7);
-      --text: #111827;
-      --muted: #4b5563;
-    }
-
-    body.light::before {
-      background:
-        linear-gradient(to bottom, rgba(255,255,255,.6), rgba(255,255,255,.92)),
-        url('https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg') center/cover no-repeat;
-    }
-
-    body.light .glass-panel {
-      border: 1px solid rgba(0,0,0,0.08);
     }
     
     body::before {
@@ -177,19 +160,16 @@
   <!-- Main Content -->
   <main class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 pb-24 max-w-7xl mx-auto w-full">
     <!-- Hero Section -->
-    <section
-      id="heroSection"
-      class="glass-panel col-span-1 lg:col-span-2 overflow-hidden relative"
+    <section 
+      class="glass-panel col-span-1 lg:col-span-2 overflow-hidden relative" 
       data-aos="fade-right"
       aria-labelledby="heroTitle"
     >
       <div class="absolute inset-0 bg-gradient-to-b from-black/40 to-black/80 z-0"></div>
-      <img
-        id="heroImage"
-        src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg"
+      <img 
+        src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg" 
         alt="Midnight Vibes by Mr. FLEN"
         class="absolute inset-0 w-full h-full object-cover z-0"
-        data-fallback-artwork="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg"
       >
       
       <div class="relative z-10 p-6 flex flex-col justify-end h-96">
@@ -200,10 +180,10 @@
           Now Trending
         </div>
         <h1 id="heroTitle" class="text-3xl md:text-4xl font-bold" data-aos="fade-up" data-aos-delay="100">Midnight Vibes</h1>
-        <p id="heroArtist" class="text-muted" data-aos="fade-up" data-aos-delay="200">MR.FLEN</p>
+        <p class="text-muted" data-aos="fade-up" data-aos-delay="200">MR.FLEN</p>
         
         <div class="mt-6 flex items-center gap-4" data-aos="fade-up" data-aos-delay="300">
-          <button id="heroPlayButton" class="glass-panel w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-brand/10 transition">
+          <button class="glass-panel w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-brand/10 transition">
             <i data-feather="play" class="w-6 h-6 text-white"></i>
           </button>
           <button class="glass-panel px-4 py-2 flex items-center gap-2 text-sm hover:bg-panel/80 transition">
@@ -433,15 +413,14 @@
     <div class="flex items-center gap-3 w-48">
       <div class="w-14 h-14 rounded-lg overflow-hidden">
         <img 
-          id="npArt"
           src="https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg" 
           alt="Now Playing"
           class="w-full h-full object-cover"
         >
       </div>
       <div>
-        <div id="npTitle" class="font-medium truncate w-28">Midnight Vibes</div>
-        <div id="npArtist" class="text-xs text-brand/90 truncate w-28">MR.FLEN</div>
+        <div class="font-medium truncate w-28">Midnight Vibes</div>
+        <div class="text-xs text-brand/90 truncate w-28">MR.FLEN</div>
       </div>
     </div>
     
@@ -454,7 +433,7 @@
           id="playPauseBtn"
           class="glass-panel w-12 h-12 flex items-center justify-center rounded-full bg-brand hover:bg-brand/90 transition"
         >
-          <i data-feather="play" class="w-5 h-5 translate-x-px"></i>
+          <img src="https://videos.openai.com/vg-assets/assets%2Ftask_01k50ne2sqfa7bt7ysj4ysber1%2F1757737878_img_1.webp?st=2025-09-13T02%3A52%3A19Z&amp;se=2025-09-19T03%3A52%3A19Z&amp;sks=b&amp;skt=2025-09-13T02%3A52%3A19Z&amp;ske=2025-09-19T03%3A52%3A19Z&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&amp;skv=2019-02-02&amp;sv=2018-11-09&amp;sr=b&amp;sp=r&amp;spr=https%2Chttp&amp;sig=hqf3g2w%2Fc8eIE8G4lB%2Bqjuu5AM%2FKFniZ%2F7brwsJ1318%3D&amp;az=oaivgprodsc" alt="Play" class="w-5 h-5 translate-x-px" />
         </button>
         <button class="glass-panel w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition">
           <i data-feather="skip-forward" class="w-4 h-4"></i>
@@ -553,7 +532,7 @@
             id="fullPlayerPlay"
             class="glass-panel w-16 h-16 flex items-center justify-center rounded-full bg-brand hover:bg-brand/90 transition"
           >
-            <i data-feather="play" class="w-6 h-6 translate-x-px"></i>
+            <img src="https://videos.openai.com/vg-assets/assets%2Ftask_01k50ne2sqfa7bt7ysj4ysber1%2F1757737878_img_1.webp?st=2025-09-13T02%3A52%3A19Z&amp;se=2025-09-19T03%3A52%3A19Z&amp;sks=b&amp;skt=2025-09-13T02%3A52%3A19Z&amp;ske=2025-09-19T03%3A52%3A19Z&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&amp;skv=2019-02-02&amp;sv=2018-11-09&amp;sr=b&amp;sp=r&amp;spr=https%2Chttp&amp;sig=hqf3g2w%2Fc8eIE8G4lB%2Bqjuu5AM%2FKFniZ%2F7brwsJ1318%3D&amp;az=oaivgprodsc" alt="Play" class="w-6 h-6 translate-x-px" />
           </button>
           <button class="glass-panel w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/10 transition">
             <i data-feather="skip-forward" class="w-5 h-5"></i>
@@ -573,25 +552,9 @@
           </button>
         </div>
       </div>
-  </div>
-  </div>
-
-  <!-- Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden">
-    <div id="settingsPanel" class="glass-panel p-6 w-80 opacity-0">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-medium">Settings</h2>
-        <button id="closeSettings" class="p-1 rounded hover:bg-white/10">
-          <i data-feather="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-      <label class="flex items-center justify-between">
-        <span class="text-sm">Light Theme</span>
-        <input id="themeToggle" type="checkbox" class="w-4 h-4">
-      </label>
     </div>
   </div>
-
+  
   <!-- Config -->
   <script id="config" type="application/json">
     {
@@ -634,47 +597,6 @@
         easing: 'ease-out',
         once: true
       });
-
-      // Theme setup
-      if (window.Theme) {
-        const { applyTheme, getSavedTheme, toggleTheme } = window.Theme;
-        applyTheme(getSavedTheme());
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) {
-          themeToggle.checked = getSavedTheme() === 'light';
-          themeToggle.addEventListener('change', () => {
-            const mode = toggleTheme();
-            themeToggle.checked = mode === 'light';
-          });
-        }
-      }
-      // Settings modal animations
-      const settingsModal = document.getElementById('settingsModal');
-      const settingsPanel = document.getElementById('settingsPanel');
-      document.getElementById('settingsBtn').addEventListener('click', () => {
-        settingsModal.classList.remove('hidden');
-        anime({
-          targets: '#settingsPanel',
-          opacity: [0, 1],
-          translateY: [-20, 0],
-          duration: 300,
-          easing: 'easeOutQuad'
-        });
-      });
-      document.getElementById('closeSettings').addEventListener('click', closeSettings);
-      settingsModal.addEventListener('click', (e) => {
-        if (e.target === settingsModal) closeSettings();
-      });
-      function closeSettings() {
-        anime({
-          targets: '#settingsPanel',
-          opacity: [1, 0],
-          translateY: [0, -20],
-          duration: 200,
-          easing: 'easeInQuad',
-          complete: () => settingsModal.classList.add('hidden')
-        });
-      }
       
       // Player expansion toggle
       document.getElementById('expandPlayer').addEventListener('click', () => {
@@ -780,18 +702,11 @@
         if (!response.ok) throw new Error('Failed to fetch trending tracks');
         
         const data = await response.json();
-        const trendingContainer = document.querySelector(
-          'section[aria-labelledby="trendingTitle"] .grid.grid-cols-1'
-        );
-
-        if (!trendingContainer) {
-          console.warn('Trending section container not found.');
-          return;
-        }
-
+        const trendingContainer = document.querySelector('.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-4');
+        
         if (data.data && data.data.length > 0) {
           trendingContainer.innerHTML = '';
-
+          
           data.data.slice(0, 4).forEach((track, index) => {
             const trackElement = createTrackCard(track, index);
             trendingContainer.appendChild(trackElement);
@@ -925,28 +840,23 @@
     
     // Update hero section with track data
     function updateHeroSection(track) {
-      if (!track) return;
-
       const heroTitle = document.getElementById('heroTitle');
-      const heroImage = document.getElementById('heroImage');
-      const heroArtist = document.getElementById('heroArtist');
-      const playButton = document.getElementById('heroPlayButton');
-      const fallbackArtwork = heroImage?.dataset?.fallbackArtwork
-        || 'https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg';
-
-      if (heroTitle) heroTitle.textContent = track.title || 'Untitled';
-      if (heroArtist) heroArtist.textContent = track.user?.name || 'Unknown Artist';
-
-      const artwork = (track.artwork && track.artwork['480x480']) || fallbackArtwork;
-      if (heroImage) heroImage.src = artwork;
-
-      if (playButton) {
-        playButton.onclick = () => playTrack(
-          track.id,
-          track.title,
-          track.user?.name || 'Unknown Artist',
-          artwork
-        );
+      const heroImage = document.querySelector('.hero img');
+      const heroArtist = document.querySelector('.hero .muted');
+      
+      if (track) {
+        heroTitle.textContent = track.title;
+        heroArtist.textContent = track.user.name;
+        
+        if (track.artwork && track.artwork['480x480']) {
+          heroImage.src = track.artwork['480x480'];
+        }
+        
+        // Update play button to play this track
+        const playButton = document.querySelector('.hero button');
+        playButton.onclick = () => playTrack(track.id, track.title, track.user.name, 
+          track.artwork && track.artwork['480x480'] ? track.artwork['480x480'] : 
+          'https://audius-content-6.cultur3stake.com/content/01K0PYMD8X6ZA6JNCDWMWD4510/480x480.jpg');
       }
     }
     
@@ -959,7 +869,7 @@
       
       // Show playing state
       const playButton = document.getElementById('playPauseBtn');
-      playButton.innerHTML = '<i data-feather="pause" class="w-5 h-5"></i>';
+      playButton.innerHTML = '<img src="https://videos.openai.com/vg-assets/assets%2Ftask_01k50ne2sqfa7bt7ysj4ysber1%2F1757737878_img_1.webp?st=2025-09-13T02%3A52%3A19Z&amp;se=2025-09-19T03%3A52%3A19Z&amp;sks=b&amp;skt=2025-09-13T02%3A52%3A19Z&amp;ske=2025-09-19T03%3A52%3A19Z&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skoid=aa5ddad1-c91a-4f0a-9aca-e20682cc8969&amp;skv=2019-02-02&amp;sv=2018-11-09&amp;sr=b&amp;sp=r&amp;spr=https%2Chttp&amp;sig=hqf3g2w%2Fc8eIE8G4lB%2Bqjuu5AM%2FKFniZ%2F7brwsJ1318%3D&amp;az=oaivgprodsc" alt="Pause" class="w-5 h-5" />';
       feather.replace();
       
       // Fetch and play stream
@@ -1204,7 +1114,6 @@
       searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(performSearch, 800);
-
       });
     }
     
@@ -1219,6 +1128,5 @@
       });
     }, 300);
   </script>
-  <audio id="audio"></audio>
 </body>
 </html>

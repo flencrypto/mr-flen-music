@@ -32,9 +32,37 @@
     return arr;
   }
 
-  function adjustIndexOnRemove(currentIndex, removedIndex) {
-    return removedIndex <= currentIndex ? currentIndex - 1 : currentIndex;
+  function adjustIndexOnRemove(currentIndex, removedIndex, nextLength) {
+    if (typeof currentIndex !== 'number' || currentIndex < 0) {
+      return currentIndex;
+    }
+    if (typeof removedIndex !== 'number' || removedIndex < 0) {
+      return currentIndex;
+    }
+    if (removedIndex > currentIndex) {
+      return currentIndex;
+    }
+    if (
+      removedIndex === currentIndex &&
+      typeof nextLength === 'number' &&
+      Number.isFinite(nextLength) &&
+      nextLength > currentIndex
+    ) {
+      return currentIndex;
+    }
+    const nextIndex = currentIndex - 1;
+    return nextIndex >= 0 ? nextIndex : -1;
   }
 
-  return { addToQueue, removeFromQueue, moveInQueue, adjustIndexOnRemove };
+  function previousIndex(currentIndex) {
+    return currentIndex > 0 ? currentIndex - 1 : currentIndex;
+  }
+
+  return {
+    addToQueue,
+    removeFromQueue,
+    moveInQueue,
+    adjustIndexOnRemove,
+    previousIndex,
+  };
 });

@@ -1,34 +1,22 @@
 # Mr.FLEN Music Library
 
-A sleek, HTML-only music browser that unifies **Audius** and **SoundCloud** tracks for Mr.FLEN. The `/public` folder contains the minimal Progressive Web App:
+A sleek, HTML-only music browser that unifies **Audius**, **SoundCloud**, and **Spotify** tracks for Mr.FLEN. The `/public` folder contains the minimal Progressive Web App:
 
 - Dark, glassy dashboard UI.
-- Unified search (Audius + SoundCloud) with playback restricted to Mr.FLEN tracks.
+- Unified search (Audius + SoundCloud + Spotify) with playback restricted to Mr.FLEN tracks.
 - Sticky player bar powered by the MediaSession API.
+- Playback controls include previous/next, shuffle, and queue management.
 - Installable PWA with offline shell caching.
 - Light/dark theme toggle across pages with preference stored in local storage.
 - Player supports mute toggle and keyboard shortcuts for play/pause and mute.
 - ReFLENgineered section listing all remix tracks.
-- New Releases section filterable by month, showing plays and likes per track.
+- New Releases section auto-populated with latest tracks and dropdown linking to month pages.
 - Track lists display play and like counts throughout the UI.
 
 ## Getting started
 
-1. Copy `.env.example` to `.env` and fill in credentials for SoundCloud, Instagram, X, Snapchat, and TikTok.
+1. Copy `.env.example` to `.env` and fill in credentials for Audius, SoundCloud, Spotify, Instagram, X, Snapchat, and TikTok.
 2. Serve the `public/` directory with any static host or open `public/index.html` directly in a browser.
-
-### OAuth configuration
-
-Each provider requires a client ID exposed via environment variables:
-
-| Provider | Variable | Notes |
-| --- | --- | --- |
-| Instagram | `INSTAGRAM_CLIENT_ID` | Create an app at [developers.facebook.com](https://developers.facebook.com/apps/) and enable Instagram Basic Display. |
-| X | `X_CLIENT_ID` | Register at [developer.twitter.com](https://developer.twitter.com/) and create an OAuth 2.0 Client. |
-| Snapchat | `SNAPCHAT_CLIENT_ID` | Use the [Snap Kit portal](https://kit.snapchat.com/portal) to obtain credentials. |
-| TikTok | `TIKTOK_CLIENT_ID` | Create an app in the [TikTok developer portal](https://developers.tiktok.com/). |
-
-Populate these values in `.env` before running locally.
 
 ## Mobile installation
 
@@ -46,7 +34,7 @@ The app icon is loaded from an external source so no binary images live in the r
 
 ## Attribution
 
-Powered by the [Audius API](https://audius.org/) and [SoundCloud](https://soundcloud.com/).
+Powered by the [Audius API](https://audius.org/), [SoundCloud](https://soundcloud.com/), and [Spotify](https://spotify.com/).
 
 ## Android app
 

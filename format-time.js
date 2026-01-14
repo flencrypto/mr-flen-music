@@ -1,11 +1,16 @@
 // @ts-nocheck
 
 function formatTime(seconds) {
-  const s = Math.floor(seconds % 60)
-    .toString()
-    .padStart(2, "0");
-  const m = Math.floor(seconds / 60);
-  return `${m}:${s}`;
+  const numericSeconds = Number(seconds);
+  if (!Number.isFinite(numericSeconds) || numericSeconds <= 0) {
+    return "0:00";
+  }
+
+  const wholeSeconds = Math.floor(numericSeconds);
+  const minutes = Math.floor(wholeSeconds / 60);
+  const remainder = wholeSeconds % 60;
+
+  return `${minutes}:${String(remainder).padStart(2, "0")}`;
 }
 
 if (typeof module !== "undefined") {
