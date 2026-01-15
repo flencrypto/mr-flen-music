@@ -74,6 +74,20 @@ export function MusicHomeScreen ({ navigation }: Props): React.JSX.Element {
             onValueChange={setUseMusicInSessions}
           />
         </View>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => { navigation.navigate('Downloads') }}
+          >
+            <Text style={styles.headerButtonText}>Downloads</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => { navigation.navigate('StorageManager') }}
+          >
+            <Text style={styles.headerButtonText}>Storage</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.featuredSection}>
@@ -126,6 +140,23 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontSize: 16,
     color: '#333'
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12
+  },
+  headerButton: {
+    flex: 1,
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 6,
+    alignItems: 'center'
+  },
+  headerButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600'
   },
   featuredSection: {
     padding: 16
