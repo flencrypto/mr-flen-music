@@ -83,7 +83,9 @@ export class StorageManager {
     const tracksToRemove = Array.from(this.trackMeta.values())
       .filter(t => t.packId === packId)
       .map(t => t.id)
-    tracksToRemove.forEach(id => { this.trackMeta.delete(id) })
+    for (const id of tracksToRemove) {
+      this.trackMeta.delete(id)
+    }
   }
 
   /**

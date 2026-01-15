@@ -24,7 +24,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>()
 export function RootStack (): React.JSX.Element {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName='MusicHome'>
+      <Stack.Navigator initialRouteName='Home'>
         <Stack.Screen name='Home' component={HomeScreen} />
         <Stack.Screen
           name='Track'

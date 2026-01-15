@@ -73,7 +73,7 @@ export function ActiveSessionScreen ({ session, onComplete, onExit }: Props): Re
       sessionManager.startPhase(phase)
 
       if (currentSegment.coachCue != null) {
-        void sessionManager.playCoachCue(currentSegment.coachCue as any)
+        void sessionManager.playCoachCue(currentSegment.coachCue)
       }
     }
   }
@@ -83,7 +83,7 @@ export function ActiveSessionScreen ({ session, onComplete, onExit }: Props): Re
     sessionManager.startPhase(phase)
 
     if (segment.coachCue != null) {
-      void sessionManager.playCoachCue(segment.coachCue as any)
+      void sessionManager.playCoachCue(segment.coachCue)
     }
   }
 

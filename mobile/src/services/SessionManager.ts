@@ -121,7 +121,7 @@ export class SessionManager {
   /**
    * Play a coach cue
    */
-  async playCoachCue (cueType: 'walk' | 'jog' | 'run' | 'recover' | 'complete'): Promise<void> {
+  async playCoachCue (cueType: 'warmup' | 'walk' | 'jog' | 'run' | 'recover' | 'cooldown' | 'complete'): Promise<void> {
     // In real implementation, map cue type to audio file
     const cueAudioPath = `cues/${cueType}.m4a`
     await audioPlayer.playCoachCue(cueAudioPath, this.config.duckingEnabled)

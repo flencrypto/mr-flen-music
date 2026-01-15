@@ -72,7 +72,7 @@ export class DownloadManager {
     if (download != null) {
       // Cleanup temp files here
       this.downloads.delete(packId)
-      this.notifyStateChange(packId, PackInstallState.NOT_INSTALLED)
+      // Don't notify state change as the pack is removed from tracking
     }
   }
 

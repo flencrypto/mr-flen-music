@@ -8,7 +8,6 @@ export interface SessionTrackFilter {
   energy?: { min?: number, max?: number }
   bpm?: { min?: number, max?: number }
   tags?: string[]
-  excludeRecent?: boolean
 }
 
 /**

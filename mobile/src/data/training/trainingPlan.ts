@@ -2,12 +2,14 @@
  * Training plan data - bundled with app for offline use
  */
 
+export type CoachCueType = 'warmup' | 'walk' | 'jog' | 'run' | 'recover' | 'cooldown' | 'complete'
+
 export interface TrainingSegment {
   id: string
   type: 'warmup' | 'walk' | 'jog' | 'run' | 'recover' | 'cooldown'
   durationSeconds: number
   description: string
-  coachCue?: string
+  coachCue?: CoachCueType
 }
 
 export interface TrainingSession {
