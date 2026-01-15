@@ -73,20 +73,22 @@ export function filterTracks (tracks: TrackMeta[], filter: SessionTrackFilter): 
   let filtered = tracks
 
   if (filter.energy != null) {
-    if (filter.energy.min != null) {
-      filtered = filtered.filter(t => t.energy >= filter.energy!.min!)
+    const { min, max } = filter.energy
+    if (min != null) {
+      filtered = filtered.filter(t => t.energy >= min)
     }
-    if (filter.energy.max != null) {
-      filtered = filtered.filter(t => t.energy <= filter.energy!.max!)
+    if (max != null) {
+      filtered = filtered.filter(t => t.energy <= max)
     }
   }
 
   if (filter.bpm != null) {
-    if (filter.bpm.min != null) {
-      filtered = filtered.filter(t => t.bpm >= filter.bpm!.min!)
+    const { min, max } = filter.bpm
+    if (min != null) {
+      filtered = filtered.filter(t => t.bpm >= min)
     }
-    if (filter.bpm.max != null) {
-      filtered = filtered.filter(t => t.bpm <= filter.bpm!.max!)
+    if (max != null) {
+      filtered = filtered.filter(t => t.bpm <= max)
     }
   }
 
