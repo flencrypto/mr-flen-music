@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "test:audius": "node scripts/test-audius-link.js"
   },
   "license": "MIT",
   "devDependencies": {

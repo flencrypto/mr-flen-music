@@ -1,4 +1,20 @@
-const cfg = JSON.parse(document.querySelector('#config').textContent);
+function readSiteConfig() {
+  const configElement = document.querySelector('#config');
+
+  if (!configElement) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(configElement.textContent || '{}');
+  } catch (error) {
+    console.warn('Failed to parse embedded config, falling back to defaults.', error);
+    return {};
+  }
+}
+
+const cfg = readSiteConfig();
+const AUDIUS_BASE_URL = (cfg.audiusBaseUrl || 'https://discoveryprovider.audius.co/v1').replace(/\/$/, '');
 const els = {
   q: document.querySelector('#q'),
   results: document.querySelector('#resultsList'),
@@ -297,14 +313,14 @@ if (cfg.analytics) {
 
 // Gracefully handle missing configuration for Mr.FLEN identifiers.
 function isMrFlenName(name){
-  return (name||'').trim().toLowerCase() === (cfg.mrflens?.soundcloudUsername || 'mr-flen').toLowerCase();
+  return (name||'').trim().toLowerCase() === ((cfg.mrflens && cfg.mrflens.soundcloudUsername) || 'mr-flen').toLowerCase();
 }
 function isMrFlenAudius(handle){
-  return (handle||'').toLowerCase() === (cfg.mrflens?.audiusHandle || 'Mr.FLEN').toLowerCase();
+  return (handle||'').toLowerCase() === ((cfg.mrflens && cfg.mrflens.audiusHandle) || 'Mr.FLEN').toLowerCase();
 }
 
 async function audiusSearch(q){
-  const u = new URL('https://discoveryprovider.audius.co/v1/tracks/search');
+  const u = new URL(`${AUDIUS_BASE_URL}/tracks/search`);
   u.searchParams.set('query', q);
   u.searchParams.set('app_name','MrFLEN');
   u.searchParams.set('limit','25');
@@ -314,7 +330,7 @@ async function audiusSearch(q){
     id: t.id, platform:'audius',
     title: t.title, artist: t.user?.name, artwork: t.artwork?.['150x150'] || t.artwork?.['480x480'],
     durationMs: t.duration * 1000, permalink: t.permalink,
-    streamUrl: `https://discoveryprovider.audius.co/v1/tracks/${t.id}/stream?app_name=MrFLEN`,
+    streamUrl: `${AUDIUS_BASE_URL}/tracks/${t.id}/stream?app_name=MrFLEN`,
     isMrFlen: isMrFlenAudius(t.user?.handle)
   }));
 }
@@ -343,7 +359,7 @@ async function soundcloudSearch(q){
 async function loadTrending(){
   if(!els.trending) return;
   try {
-    const u = new URL('https://discoveryprovider.audius.co/v1/tracks/trending');
+    const u = new URL(`${AUDIUS_BASE_URL}/tracks/trending`);
     u.searchParams.set('limit', '8');
     u.searchParams.set('app_name', 'MrFLEN');
     const r = await fetch(u, { headers: { Accept: 'application/json' } });
@@ -352,7 +368,7 @@ async function loadTrending(){
       id: t.id, platform:'audius',
       title: t.title, artist: t.user?.name, artwork: t.artwork?.['150x150'] || t.artwork?.['480x480'],
       durationMs: t.duration * 1000, permalink: t.permalink,
-      streamUrl: `https://discoveryprovider.audius.co/v1/tracks/${t.id}/stream?app_name=MrFLEN`,
+      streamUrl: `${AUDIUS_BASE_URL}/tracks/${t.id}/stream?app_name=MrFLEN`,
       isMrFlen: isMrFlenAudius(t.user?.handle)
     }));
     els.trending.innerHTML = '';

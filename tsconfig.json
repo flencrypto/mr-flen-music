@@ -11,6 +11,14 @@
     "types": ["jest", "node"],
     "skipLibCheck": true
   },
-  "include": ["auth.js", "audius.js", "format-time.js", "jest.config.js", "spotify.js"],
+  "include": [
+    "auth.js",
+    "audius.js",
+    "format-time.js",
+    "jest.config.js",
+    "spotify.js",
+    "lib/**/*.js",
+    "scripts/**/*.js"
+  ],
   "exclude": ["node_modules", "test", "public", "__tests__"]
 }

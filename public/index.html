@@ -696,6 +696,7 @@
   <!-- Config -->
   <script id="config" type="application/json">
     {
+      "audiusBaseUrl": "https://discoveryprovider.audius.co/v1",
       "audiusAppName": "YOUR_AUDIUS_APP_NAME",
       "audiusKey": "YOUR_AUDIUS_API_KEY",
       "scClientId": "YOUR_SOUNDCLOUD_CLIENT_ID",
@@ -708,12 +709,29 @@
 
   <!-- Audius API Integration -->
   <script>
+    const DEFAULT_AUDIUS_BASE_URL = "https://discoveryprovider.audius.co/v1";
+    const configElement = document.getElementById("config");
+
+    function parseSiteConfig() {
+      if (!configElement) {
+        return {};
+      }
+
+      try {
+        return JSON.parse(configElement.textContent || "{}");
+      } catch (error) {
+        console.warn("Failed to parse site config, using defaults.", error);
+        return {};
+      }
+    }
+
+    const siteConfig = parseSiteConfig();
     const CONFIG = (window.configLoader && window.configLoader.loadFromDom)
       ? window.configLoader.loadFromDom(document)
-      : {};
+      : siteConfig;
     const AUDIUS_API_KEY = (CONFIG?.audiusKey || "YOUR_AUDIUS_API_KEY").trim();
     const AUDIUS_APP_NAME = (CONFIG?.audiusAppName || "YOUR_AUDIUS_APP_NAME").trim();
-    const AUDIUS_BASE_URL = "https://discoveryprovider.audius.co/v1";
+    const AUDIUS_BASE_URL = (CONFIG.audiusBaseUrl || DEFAULT_AUDIUS_BASE_URL).replace(/\/$/, "");
     const AUDIUS_APP = AUDIUS_APP_NAME || "MrFLEN";
 
     function buildAudiusQuery(params = {}) {
