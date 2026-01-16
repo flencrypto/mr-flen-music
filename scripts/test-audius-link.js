@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// Load environment variables from .env file
+require("./load-env");
+
 const {
   DEFAULT_BASE_URL,
   DEFAULT_TIMEOUT_MS,
