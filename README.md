@@ -12,30 +12,18 @@ Deliver a training app where:
 
 ## ✨ Key Features
 
-### Audius API health check
+### Environment Setup
 
-Verify connectivity to the configured Audius discovery provider before running demos or populating dashboards:
+A `.env` file is included in the repository for managing API keys and secrets. To set up your environment:
 
-```bash
-pnpm test:audius
-```
+1. The `.env` file has been created from `.env.example` with placeholder values
+2. Replace the placeholder values with your actual API keys and secrets:
+   - `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` from [developer.spotify.com](https://developer.spotify.com/dashboard/)
+   - `SOUNDCLOUD_CLIENT_ID` from [developers.soundcloud.com](https://developers.soundcloud.com/)
+   - `AUDIUS_APP_KEY` and `AUDIUS_API_KEY` for Audius integration
+   - Other provider credentials as needed
 
-The script calls the `/health_check` endpoint with a 5 second timeout and exits non-zero if the provider is unavailable. Override the endpoint or timeout via `AUDIUS_BASE_URL` and `AUDIUS_TEST_TIMEOUT_MS`.
-
-### OAuth configuration
-
-Each provider requires a client ID exposed via environment variables:
-
-| Provider | Variable | Notes |
-| --- | --- | --- |
-| SoundCloud | `SOUNDCLOUD_CLIENT_ID` | Get a public client ID from [developers.soundcloud.com](https://developers.soundcloud.com/). Without it, SoundCloud results are unavailable. |
-| Spotify | `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` | Create an app at [developer.spotify.com](https://developer.spotify.com/dashboard/) and enable the Web API. |
-| Instagram | `INSTAGRAM_CLIENT_ID` | Create an app at [developers.facebook.com](https://developers.facebook.com/apps/) and enable Instagram Basic Display. |
-| X | `X_CLIENT_ID` | Register at [developer.twitter.com](https://developer.twitter.com/) and create an OAuth 2.0 Client. |
-| Snapchat | `SNAPCHAT_CLIENT_ID` | Use the [Snap Kit portal](https://kit.snapchat.com/portal) to obtain credentials. |
-| TikTok | `TIKTOK_CLIENT_ID` | Create an app in the [TikTok developer portal](https://developers.tiktok.com/). |
-
-Populate these values in `.env` before running locally.
+The project uses the `dotenv` package to automatically load these environment variables when running scripts.
 
 ### Audius API health check
 
@@ -61,6 +49,16 @@ Each provider requires a client ID exposed via environment variables:
 | TikTok | `TIKTOK_CLIENT_ID` | Create an app in the [TikTok developer portal](https://developers.tiktok.com/). |
 
 Populate these values in `.env` before running locally.
+
+### Audius API health check
+
+Verify connectivity to the configured Audius discovery provider before running demos or populating dashboards:
+
+```bash
+pnpm test:audius
+```
+
+The script calls the `/health_check` endpoint with a 5 second timeout and exits non-zero if the provider is unavailable. Override the endpoint or timeout via `AUDIUS_BASE_URL` and `AUDIUS_TEST_TIMEOUT_MS`.
 
 ## Mobile installation
 
