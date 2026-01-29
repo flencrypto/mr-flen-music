@@ -24,6 +24,7 @@
     "typescript": "5.4.5"
   },
   "dependencies": {
+    "dotenv": "^17.2.3",
     "zod": "^4.1.11"
   }
 }
